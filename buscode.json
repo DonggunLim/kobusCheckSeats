@@ -1,0 +1,22 @@
+// {
+//   "arvlArea": "47",
+//   "arvlNm": "상주",
+//   "homeTickYn": "Y",
+//   "takeTime": "150",
+//   "deprNm": "서울경부",
+//   "arvlCd": "825",
+//   "deprCd": "010",
+//   "prmmDcYn": "N",
+//   "deprArea": "11"
+// },
+// {
+//             "arvlArea": "11",
+//             "arvlNm": "서울경부",
+//             "homeTickYn": "Y",
+//             "takeTime": "150",
+//             "deprNm": "상주",
+//             "arvlCd": "010",
+//             "deprCd": "825",
+//             "prmmDcYn": "N",
+//             "deprArea": "47"
+//         },

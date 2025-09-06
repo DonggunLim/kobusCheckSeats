@@ -1,0 +1,46 @@
+# 워크플로우의 이름 (GitHub 'Actions' 탭에 표시됩니다)
+name: Bus Seat Checker
+
+# 워크플로우가 실행될 조건을 정의합니다
+on:
+  # 1. 스케줄 실행
+  schedule:
+    # cron 표현식을 사용하여 5분마다 실행합니다.
+    # [주의] 너무 잦은 실행은 GitHub 정책에 의해 제한될 수 있습니다.
+    # 안정적인 운영을 위해 15분 이상 간격('*/15 * * * *')을 권장합니다.
+    - cron: "*/10 * * * *"
+
+  # 2. 수동 실행 (Actions 탭에서 'Run workflow' 버튼으로 직접 실행)
+  workflow_dispatch:
+
+# 실행할 작업(job) 목록을 정의합니다
+jobs:
+  # 'check'라는 이름의 작업을 정의합니다
+  check:
+    # 이 작업은 최신 버전의 Ubuntu 가상 환경에서 실행됩니다
+    runs-on: ubuntu-latest
+
+    # 작업 내에서 실행될 단계(step)들을 순서대로 정의합니다
+    steps:
+      # 1단계: 저장소의 코드를 가상 환경으로 가져옵니다 (필수)
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # 2단계: Node.js 환경을 설정합니다
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          # 스크립트와 호환되는 Node.js 버전을 지정합니다
+          node-version: "20"
+
+      # 3단계: npm으로 프로젝트 의존성(playwright)을 설치합니다
+      - name: Install dependencies
+        run: npm install
+
+      # 4단계: Playwright가 사용할 브라우저와 시스템 라이브러리를 설치합니다 (매우 중요!)
+      - name: Install Playwright Browsers and dependencies
+        run: npx playwright install --with-deps
+
+      # 5단계: 작성한 좌석 확인 스크립트를 실행합니다
+      - name: Run the seat check script
+        run: node index.js
