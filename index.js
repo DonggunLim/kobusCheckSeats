@@ -17,8 +17,12 @@ async function checkBusSeats() {
   );
 
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
-  let foundThisRun = false; // 이번 실행에서 좌석을 찾았는지 기록하는 변수
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+  });
+  const page = await context.newPage();
+  let foundThisRun = false;
 
   try {
     page.on("dialog", async (dialog) => {
