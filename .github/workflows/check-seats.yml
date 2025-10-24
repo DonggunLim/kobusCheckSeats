@@ -43,4 +43,12 @@ jobs:
 
       # 5단계: 작성한 좌석 확인 스크립트를 실행합니다
       - name: Run the seat check script
-        run: node index.js
+        run: npm run check
+
+      # 6단계: 결과를 저장소에 커밋합니다 (히스토리 데이터 보존)
+      - name: Commit and push results
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/history.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update seat check history [skip ci]" && git push)
