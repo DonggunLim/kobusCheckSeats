@@ -8,19 +8,6 @@ import { useStats } from "../model/useStats";
  */
 export function StatsCards() {
   const { stats, loading, error } = useStats();
-  // Loading 상태
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
 
   // Error 상태
   if (error) {
@@ -29,11 +16,6 @@ export function StatsCards() {
         <p className="text-red-800">통계 로딩 실패: {error}</p>
       </div>
     );
-  }
-
-  // No data 상태
-  if (!stats) {
-    return null;
   }
 
   // Data 상태

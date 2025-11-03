@@ -4,23 +4,18 @@
  * 세션 관리를 통해 반복 조회 시 누적 시간과 시도 횟수를 추적합니다.
  */
 
-// TypeScript 모듈을 CommonJS에서 사용하기 위해 동적 import 사용
-async function main() {
-  // 동적 import로 TypeScript 모듈 로드
-  const { checkBusSeats, DEFAULT_CONFIG } = await import(
-    "./src/shared/api/kobus-scraper/scraper.ts"
-  );
-  const { saveCheckResult } = await import(
-    "./src/app/api/lib/check-result-repository.ts"
-  );
-  const {
-    getActiveSession,
-    startSession,
-    incrementAttempt,
-    endSession,
-    getSessionDuration,
-  } = await import("./src/app/api/lib/session-manager.ts");
+import { checkBusSeats } from "./src/shared/api/kobus-scraper/scraper";
+import { DEFAULT_CONFIG } from "./src/shared/api/kobus-scraper/config";
+import { saveCheckResult } from "./src/app/api/lib/check-result-repository";
+import {
+  getActiveSession,
+  startSession,
+  incrementAttempt,
+  endSession,
+  getSessionDuration,
+} from "./src/app/api/lib/session-manager";
 
+async function main() {
   try {
     console.log("🚀 좌석 체크 시작...");
 

@@ -51,7 +51,9 @@ export async function saveCheckResult(result: CheckResult): Promise<void> {
 /**
  * 최근 N개의 히스토리를 가져옵니다.
  */
-export async function getRecentHistory(limit: number = 50): Promise<CheckResult[]> {
+export async function getRecentHistory(
+  limit: number = 50
+): Promise<CheckResult[]> {
   const history = await readHistory();
   return history.slice(0, limit);
 }
@@ -83,7 +85,7 @@ export async function getHistoryByDateRange(
  */
 export async function getStatistics() {
   const history = await readHistory();
-
+  console.log(history);
   if (history.length === 0) {
     return {
       totalSessions: 0,
