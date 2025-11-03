@@ -22,7 +22,7 @@ jobs:
 
     # 작업 내에서 실행될 단계(step)들을 순서대로 정의합니다
     steps:
-      # 1단계: 저장소의 코드를 가상 환경으로 가져옵니다 (필수)
+      # 1단계: 저장소의 코드를 가상 환경으로 가져옵니다
       - name: Checkout repository code
         uses: actions/checkout@v4
 
