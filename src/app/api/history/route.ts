@@ -3,8 +3,7 @@ import {
   getRecentHistory,
   getFoundSeatsHistory,
   getHistoryByDateRange,
-  getStatistics,
-} from "@/lib/db";
+} from "../lib/check-result-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -36,11 +35,7 @@ export async function GET(request: NextRequest) {
       history = await getRecentHistory(limit);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: history,
-      count: history.length,
-    });
+    return NextResponse.json(history);
   } catch (error) {
     console.error("Error in /api/history:", error);
     return NextResponse.json(

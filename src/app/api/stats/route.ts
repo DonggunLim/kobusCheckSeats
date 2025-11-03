@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStatistics } from "@/lib/db";
+import { getStatistics } from "../lib/check-result-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +11,7 @@ export async function GET() {
   try {
     const stats = await getStatistics();
 
-    return NextResponse.json({
-      success: true,
-      data: stats,
-    });
+    return NextResponse.json(stats);
   } catch (error) {
     console.error("Error in /api/stats:", error);
     return NextResponse.json(

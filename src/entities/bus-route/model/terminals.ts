@@ -1,13 +1,8 @@
+import type { Terminal } from './types';
+
 /**
  * 코버스 고속버스 터미널 목록
  */
-
-export interface Terminal {
-  value: string;
-  label: string;
-  region: string;
-}
-
 export const TERMINALS: Terminal[] = [
   // 서울
   { value: "서울경부", label: "서울경부", region: "서울" },
@@ -142,16 +137,4 @@ export const TERMINALS: Terminal[] = [
   { value: "울산신북", label: "울산신북", region: "울산" },
   { value: "부산", label: "부산", region: "부산" },
   { value: "서부산", label: "서부산(사상)", region: "부산" },
-];
-
-/**
- * 버스 시간대 목록 (30분 단위)
- */
-export const TIME_OPTIONS = [
-  "06:00", "06:30", "07:00", "07:30", "08:00", "08:30",
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
-  "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
-  "18:00", "18:30", "19:00", "19:30", "20:00", "20:30",
-  "21:00", "21:30", "22:00", "22:30", "23:00", "23:30",
 ];

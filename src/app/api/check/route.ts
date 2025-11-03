@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkBusSeats, DEFAULT_CONFIG } from "@/lib/scraper";
-import { saveCheckResult } from "@/lib/db";
-import type { BusCheckConfig } from "@/lib/types";
+import { checkBusSeats, DEFAULT_CONFIG } from "@/shared/api/kobus-scraper";
+import { saveCheckResult } from "../lib/check-result-repository";
+import type { RouteQuery } from "@/entities/bus-route";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // 최대 60초 실행 허용
@@ -13,7 +13,7 @@ export const maxDuration = 60; // 최대 60초 실행 허용
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const config: BusCheckConfig = {
+    const config: RouteQuery = {
       departure: body.departure || DEFAULT_CONFIG.departure,
       arrival: body.arrival || DEFAULT_CONFIG.arrival,
       targetMonth: body.targetMonth || DEFAULT_CONFIG.targetMonth,

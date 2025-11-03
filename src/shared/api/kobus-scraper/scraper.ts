@@ -1,19 +1,15 @@
 import { chromium } from "playwright";
-import type { BusCheckConfig, CheckResult, BusTimeResult } from "./types";
+import type { RouteQuery, RouteScheduleSlot } from "@/entities/bus-route";
+import { CheckResult } from "@/entities/check-result";
 
 /**
  * Playwright를 사용하여 코버스 사이트에서 버스 좌석을 확인합니다.
  */
 export async function checkBusSeats(
-  config: BusCheckConfig
+  config: RouteQuery
 ): Promise<CheckResult> {
-  const {
-    departure,
-    arrival,
-    targetMonth,
-    targetDate,
-    targetTimes,
-  } = config;
+  const { departure, arrival, targetMonth, targetDate, targetTimes } = config;
+  const startTime = Date.now();
 
   console.log(
     `🚌 ${new Date().toLocaleString()}: ${departure} -> ${arrival} (${targetTimes.join(
@@ -28,8 +24,9 @@ export async function checkBusSeats(
   });
   const page = await context.newPage();
 
-  const results: BusTimeResult[] = [];
+  const results: RouteScheduleSlot[] = [];
   let foundSeats = false;
+  let firstFoundTime: string | null = null;
 
   try {
     page.on("dialog", async (dialog) => {
@@ -90,6 +87,10 @@ export async function checkBusSeats(
       if (hasSeats) {
         console.log(`🎉 [${time}] 좌석 발견!`);
         foundSeats = true;
+        // 최초 발견 시간 기록
+        if (!firstFoundTime) {
+          firstFoundTime = time;
+        }
       }
 
       results.push({
@@ -106,15 +107,25 @@ export async function checkBusSeats(
       console.log("...아직 빈 좌석이 없습니다. 다음 스케줄에 다시 확인합니다.");
     }
 
+    const endTime = Date.now();
+    const durationMs = endTime - startTime;
+    console.log(`⏱️  조회 소요 시간: ${(durationMs / 1000).toFixed(2)}초`);
+
     return {
       timestamp: new Date().toISOString(),
       config,
       results,
       foundSeats,
       success: true,
+      totalCheckCount: targetTimes.length,
+      firstFoundTime,
+      durationMs,
     };
   } catch (error) {
     console.error("❌ 스크래핑 중 오류 발생:", error);
+    const endTime = Date.now();
+    const durationMs = endTime - startTime;
+
     return {
       timestamp: new Date().toISOString(),
       config,
@@ -122,17 +133,11 @@ export async function checkBusSeats(
       foundSeats: false,
       success: false,
       error: error instanceof Error ? error.message : String(error),
+      totalCheckCount: targetTimes.length,
+      firstFoundTime: null,
+      durationMs,
     };
   } finally {
     await browser.close();
   }
 }
-
-// 기본 설정
-export const DEFAULT_CONFIG: BusCheckConfig = {
-  departure: "서울경부",
-  arrival: "상주",
-  targetMonth: "10",
-  targetDate: "2",
-  targetTimes: ["18:40", "19:40"],
-};

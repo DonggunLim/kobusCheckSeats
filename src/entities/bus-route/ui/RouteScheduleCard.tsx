@@ -1,10 +1,10 @@
-import type { BusTimeResult } from "@/lib/types";
+import type { RouteScheduleSlot } from "../model/types";
 
-interface BusTimeCardProps {
-  result: BusTimeResult;
+interface RouteScheduleCardProps {
+  result: RouteScheduleSlot;
 }
 
-export default function BusTimeCard({ result }: BusTimeCardProps) {
+export function RouteScheduleCard({ result }: RouteScheduleCardProps) {
   return (
     <div
       className={`p-3 rounded-lg border ${
@@ -17,9 +17,7 @@ export default function BusTimeCard({ result }: BusTimeCardProps) {
         <span className="font-semibold text-gray-900">{result.time}</span>
         <span
           className={`text-sm ${
-            result.hasSeats
-              ? "text-green-700 font-semibold"
-              : "text-gray-600"
+            result.hasSeats ? "text-green-700 font-semibold" : "text-gray-600"
           }`}
         >
           {result.remainSeats}
