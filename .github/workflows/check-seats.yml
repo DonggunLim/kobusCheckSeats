@@ -45,10 +45,10 @@ jobs:
       - name: Run the seat check script
         run: npm run check
 
-      # 6단계: 결과를 저장소에 커밋합니다 (히스토리 데이터 보존)
+      # 6단계: 결과를 저장소에 커밋합니다 (히스토리 및 세션 데이터 보존)
       - name: Commit and push results
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add data/history.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update seat check history [skip ci]" && git push)
+          git add data/history.json data/session.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update seat check data [skip ci]" && git push)
