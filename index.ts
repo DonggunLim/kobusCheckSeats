@@ -19,13 +19,31 @@ async function main() {
   try {
     console.log("🚀 좌석 체크 시작...");
 
+    // 환경 변수에서 설정 읽기 (GitHub Actions에서 전달받은 값)
+    const envConfig = process.env.DEPARTURE
+      ? {
+          departure: process.env.DEPARTURE,
+          arrival: process.env.ARRIVAL!,
+          targetMonth: process.env.TARGET_MONTH!,
+          targetDate: process.env.TARGET_DATE!,
+          targetTimes: process.env.TARGET_TIMES!.split(","),
+        }
+      : null;
+
+    if (envConfig) {
+      console.log("📋 웹에서 전달받은 설정 사용:", envConfig);
+    } else {
+      console.log("📋 기본 설정 사용");
+    }
+
     // 1. 활성 세션 확인
     let session = await getActiveSession();
 
     if (!session) {
       // 세션이 없으면 새로 시작
       console.log("🆕 새 세션 시작");
-      session = await startSession(DEFAULT_CONFIG);
+      // 환경 변수에서 받은 설정이 있으면 사용, 없으면 DEFAULT_CONFIG 사용
+      session = await startSession(envConfig || DEFAULT_CONFIG);
     } else {
       console.log(
         `♻️  기존 세션 계속 (시도 ${session.attemptCount + 1}회, 경과 ${(

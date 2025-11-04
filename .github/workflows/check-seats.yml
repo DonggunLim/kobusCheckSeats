@@ -12,6 +12,27 @@ on:
 
   # 2. 수동 실행 (Actions 탭에서 'Run workflow' 버튼으로 직접 실행)
   workflow_dispatch:
+    inputs:
+      departure:
+        description: '출발지'
+        required: false
+        type: string
+      arrival:
+        description: '도착지'
+        required: false
+        type: string
+      targetMonth:
+        description: '목표 월 (예: 11)'
+        required: false
+        type: string
+      targetDate:
+        description: '목표 일 (예: 5)'
+        required: false
+        type: string
+      targetTimes:
+        description: '목표 시간 (쉼표로 구분, 예: 18:40,19:40)'
+        required: false
+        type: string
 
 # 실행할 작업(job) 목록을 정의합니다
 jobs:
@@ -44,6 +65,12 @@ jobs:
       # 5단계: 작성한 좌석 확인 스크립트를 실행합니다
       - name: Run the seat check script
         run: npm run check
+        env:
+          DEPARTURE: ${{ inputs.departure }}
+          ARRIVAL: ${{ inputs.arrival }}
+          TARGET_MONTH: ${{ inputs.targetMonth }}
+          TARGET_DATE: ${{ inputs.targetDate }}
+          TARGET_TIMES: ${{ inputs.targetTimes }}
 
       # 6단계: 결과를 저장소에 커밋합니다 (히스토리 및 세션 데이터 보존)
       - name: Commit and push results

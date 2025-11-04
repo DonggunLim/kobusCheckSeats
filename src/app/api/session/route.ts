@@ -82,6 +82,13 @@ export async function POST(request: NextRequest) {
             },
             body: JSON.stringify({
               ref: "main", // 또는 현재 브랜치
+              inputs: {
+                departure: config.departure,
+                arrival: config.arrival,
+                targetMonth: config.targetMonth,
+                targetDate: config.targetDate,
+                targetTimes: config.targetTimes.join(","),
+              },
             }),
           }
         );
