@@ -50,14 +50,20 @@ async function main() {
     result.durationMs = totalDuration;
 
     console.log(
-      `📊 세션 통계: ${session.attemptCount}회 시도, 총 ${(totalDuration / 1000 / 60).toFixed(1)}분 경과`
+      `📊 세션 통계: ${session.attemptCount}회 시도, 총 ${(
+        totalDuration /
+        1000 /
+        60
+      ).toFixed(1)}분 경과`
     );
 
     // 5. 좌석을 찾았으면 세션 종료
     if (result.foundSeats) {
       console.log("🎉 좌석을 찾았습니다!");
       console.log(
-        `⏱️  총 소요: ${(totalDuration / 1000 / 60).toFixed(1)}분, ${session.attemptCount}회 시도`
+        `⏱️  총 소요: ${(totalDuration / 1000 / 60).toFixed(1)}분, ${
+          session.attemptCount
+        }회 시도`
       );
 
       // 결과 저장
