@@ -135,6 +135,25 @@ jobs:
       - name: Install Playwright Browsers and dependencies
         run: npx playwright install --with-deps
 
+      # 4.5단계: 환경 변수 전달 확인 (디버깅용)
+      - name: 🔍 Verify Environment Variables
+        run: |
+          echo "================================================="
+          echo "         Environment Variables Check             "
+          echo "================================================="
+          echo "DEPARTURE: '${{ inputs.departure }}' -> ENV: '$DEPARTURE'"
+          echo "ARRIVAL: '${{ inputs.arrival }}' -> ENV: '$ARRIVAL'"
+          echo "TARGET_MONTH: '${{ inputs.targetMonth }}' -> ENV: '$TARGET_MONTH'"
+          echo "TARGET_DATE: '${{ inputs.targetDate }}' -> ENV: '$TARGET_DATE'"
+          echo "TARGET_TIMES: '${{ inputs.targetTimes }}' -> ENV: '$TARGET_TIMES'"
+          echo "================================================="
+        env:
+          DEPARTURE: ${{ inputs.departure }}
+          ARRIVAL: ${{ inputs.arrival }}
+          TARGET_MONTH: ${{ inputs.targetMonth }}
+          TARGET_DATE: ${{ inputs.targetDate }}
+          TARGET_TIMES: ${{ inputs.targetTimes }}
+
       # 5단계: 작성한 좌석 확인 스크립트를 실행합니다
       - name: Run the seat check script
         run: npm run check

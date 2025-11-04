@@ -68,8 +68,20 @@ export async function POST(request: NextRequest) {
       const githubToken = process.env.GITHUB_TOKEN;
       const githubRepo = process.env.GITHUB_REPOSITORY; // 예: "username/repo"
 
+      console.log("🔍 Config being sent to GitHub Actions:", config);
+
       if (githubToken && githubRepo) {
         const [owner, repo] = githubRepo.split("/");
+
+        const workflowInputs = {
+          departure: config.departure,
+          arrival: config.arrival,
+          targetMonth: config.targetMonth,
+          targetDate: config.targetDate,
+          targetTimes: config.targetTimes.join(","),
+        };
+
+        console.log("🔍 Workflow inputs:", workflowInputs);
 
         const response = await fetch(
           `https://api.github.com/repos/${owner}/${repo}/actions/workflows/check-seats.yml/dispatches`,
@@ -82,13 +94,7 @@ export async function POST(request: NextRequest) {
             },
             body: JSON.stringify({
               ref: "main", // 또는 현재 브랜치
-              inputs: {
-                departure: config.departure,
-                arrival: config.arrival,
-                targetMonth: config.targetMonth,
-                targetDate: config.targetDate,
-                targetTimes: config.targetTimes.join(","),
-              },
+              inputs: workflowInputs,
             }),
           }
         );
