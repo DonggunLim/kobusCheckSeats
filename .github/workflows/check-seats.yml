@@ -14,23 +14,23 @@ on:
   workflow_dispatch:
     inputs:
       departure:
-        description: '출발지'
+        description: "출발지"
         required: false
         type: string
       arrival:
-        description: '도착지'
+        description: "도착지"
         required: false
         type: string
       targetMonth:
-        description: '목표 월 (예: 11)'
+        description: "목표 월 (예: 11)"
         required: false
         type: string
       targetDate:
-        description: '목표 일 (예: 5)'
+        description: "목표 일 (예: 5)"
         required: false
         type: string
       targetTimes:
-        description: '목표 시간 (쉼표로 구분, 예: 18:40,19:40)'
+        description: "목표 시간 (쉼표로 구분, 예: 18:40,19:40)"
         required: false
         type: string
 
@@ -43,6 +43,79 @@ jobs:
 
     # 작업 내에서 실행될 단계(step)들을 순서대로 정의합니다
     steps:
+      - name: 🕵️ Check GitHub Actions Runner IP and Environment
+        run: |
+          echo "================================================="
+          echo "               1. IP Information                 "
+          echo "================================================="
+          curl ipinfo.io
+          echo ""
+          echo "DNS Servers:"
+          cat /etc/resolv.conf | grep nameserver || echo "No DNS info"
+          echo ""
+
+          echo "================================================="
+          echo "            2. System Resources                  "
+          echo "================================================="
+          echo "🖥️  CPU Info:"
+          lscpu | grep -E "Model name|CPU\(s\):|Thread|Core" || echo "CPU info unavailable"
+          echo ""
+          echo "💾 Memory:"
+          free -h
+          echo ""
+          echo "💿 Disk Space:"
+          df -h /
+          echo ""
+
+          echo "================================================="
+          echo "            3. OS & Environment Info             "
+          echo "================================================="
+          echo "OS: $(lsb_release -d 2>/dev/null | cut -f2 || uname -a)"
+          echo "Kernel: $(uname -r)"
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner Architecture: $RUNNER_ARCH"
+          echo "GitHub Actor: $GITHUB_ACTOR"
+          echo "Working Directory: $(pwd)"
+          echo "Timezone: $(cat /etc/timezone 2>/dev/null || echo "Unknown")"
+          echo "Current Time: $(date)"
+          echo "Current Time (UTC): $(date -u)"
+          echo ""
+
+          echo "================================================="
+          echo "            4. Network Connectivity Test         "
+          echo "================================================="
+          echo "🌐 Testing connection to kobus.co.kr..."
+          curl -s -o /dev/null -w "HTTP Status: %{http_code}\nTotal Time: %{time_total}s\nDNS Lookup: %{time_namelookup}s\nConnect Time: %{time_connect}s\n" https://www.kobus.co.kr/mrs/rotinf.do || echo "❌ Connection failed"
+          echo ""
+          echo "🌐 Testing general internet connectivity..."
+          curl -s -o /dev/null -w "Google HTTP Status: %{http_code}\n" https://www.google.com || echo "❌ Google connection failed"
+          echo ""
+
+          echo "================================================="
+          echo "            5. Installed Browser Info            "
+          echo "================================================="
+          echo "Chrome/Chromium versions:"
+          which google-chrome && google-chrome --version || echo "Chrome not installed yet"
+          which chromium && chromium --version || echo "Chromium not installed yet"
+          which chromium-browser && chromium-browser --version || echo "Chromium-browser not installed yet"
+          echo ""
+
+          echo "================================================="
+          echo "            6. Workflow Inputs                   "
+          echo "================================================="
+          echo "📋 Departure: ${{ inputs.departure || 'Not set (will use DEFAULT_CONFIG)' }}"
+          echo "📋 Arrival: ${{ inputs.arrival || 'Not set (will use DEFAULT_CONFIG)' }}"
+          echo "📋 Target Month: ${{ inputs.targetMonth || 'Not set (will use DEFAULT_CONFIG)' }}"
+          echo "📋 Target Date: ${{ inputs.targetDate || 'Not set (will use DEFAULT_CONFIG)' }}"
+          echo "📋 Target Times: ${{ inputs.targetTimes || 'Not set (will use DEFAULT_CONFIG)' }}"
+          echo "================================================="
+
+          # 모든 환경 변수를 보려면 아래 주석을 해제하세요 (로그가 길어짐)
+          # echo "================================================="
+          # echo "             7. All Environment Variables        "
+          # echo "================================================="
+          # env | sort
+
       # 1단계: 저장소의 코드를 가상 환경으로 가져옵니다
       - name: Checkout repository code
         uses: actions/checkout@v4
