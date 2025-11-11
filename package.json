@@ -8,7 +8,6 @@
     "start": "next start",
     "worker": "tsx src/workers/check-seats.worker.ts",
     "worker:dev": "tsx watch src/workers/check-seats.worker.ts",
-    "postinstall": "npx playwright install --with-deps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "DonggunLim",

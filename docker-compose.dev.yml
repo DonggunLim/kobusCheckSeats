@@ -1,0 +1,69 @@
+services:
+  # Redis 서비스
+  redis:
+    image: redis:alpine
+    container_name: kobus-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - kobus-network
+
+  # Next.js 앱
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    image: kobus-app:dev
+    container_name: kobus-app
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis # 'redis' 서비스 이름을 바라봄
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - kobus-network
+    restart: unless-stopped
+
+  # Worker
+  worker:
+    image: kobus-app:dev
+    container_name: kobus-worker
+    command: npm run worker:dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - kobus-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  kobus-network:
+    driver: bridge

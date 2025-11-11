@@ -1,0 +1,33 @@
+services:
+  # Next.js 앱 (프로덕션)
+  app:
+    image: ghcr.io/donggunlim/kobuscheckseat:app-latest
+    container_name: kobus-app-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=${REDIS_HOST:-redis-queue} # 홈서버의 Redis 컨테이너 이름
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
+    networks:
+      - home-network
+    restart: always
+
+  # Worker (프로덕션)
+  # 실행 시 --scale worker=N 으로 개수 조정
+  # 예: docker compose up -d --scale worker=2
+  worker:
+    image: ghcr.io/donggunlim/kobuscheckseat:worker-latest
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=${REDIS_HOST:-redis-queue} # 홈서버의 Redis 컨테이너 이름
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    networks:
+      - home-network
+    restart: always
+
+networks:
+  home-network:
+    external: true # 기존에 생성된 외부 네트워크 사용

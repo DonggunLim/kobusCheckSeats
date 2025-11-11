@@ -40,16 +40,22 @@ export function useCheckSeats() {
     setIsChecking(true);
     setError(null);
     try {
-      const { data } = await axios.post("/api/session", config);
-      setActiveSession(data.session);
+      // BullMQ 큐에 Job 추가
+      const { data } = await axios.post("/api/queue/job", config);
+
+      console.log("Job added to queue:", data);
+      alert(
+        `Job이 큐에 추가되었습니다!\nJob ID: ${data.jobId}\n\nWorker가 처리 중입니다. 로그를 확인하세요.`
+      );
+
       // 조회 완료 후 로컬스토리지 데이터 삭제
       removeFromStorage("busSearchConfig");
       return data;
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "세션 시작 실패";
+      const errorMessage = err instanceof Error ? err.message : "Job 추가 실패";
       setError(errorMessage);
-      console.error("세션 시작 실패:", err);
+      console.error("Job 추가 실패:", err);
+      alert(`Job 추가 실패: ${errorMessage}`);
       throw err;
     } finally {
       setIsChecking(false);

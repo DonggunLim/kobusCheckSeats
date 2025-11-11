@@ -129,8 +129,8 @@ export function CheckBusSeats() {
             {activeSession
               ? "조회 진행 중 (중지 후 새로운 조회 가능)"
               : isSearching
-                ? "세션 시작 중..."
-                : "반복 조회 시작"}
+              ? "세션 시작 중..."
+              : "반복 조회 시작"}
           </button>
         </form>
       </div>
