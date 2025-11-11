@@ -48,7 +48,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          dockerfile: Dockerfile
+          file: Dockerfile
           target: prod-app
           push: true
           tags: ${{ env.APP_IMAGE_NAME }}
@@ -60,7 +60,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          dockerfile: Dockerfile
+          file: Dockerfile
           target: prod-worker
           push: true
           tags: ${{ env.WORKER_IMAGE_NAME }}
