@@ -9,7 +9,6 @@ on:
 env:
   APP_IMAGE_NAME: ghcr.io/donggunlim/kobuscheckseat:app-latest
   WORKER_IMAGE_NAME: ghcr.io/donggunlim/kobuscheckseat:worker-latest
-  # ❗ 홈서버에 프로젝트가 위치할 경로
   PROJECT_PATH_ON_SERVER: /srv/kobusCheckSeats
 
 jobs:
@@ -90,6 +89,9 @@ jobs:
             # 홈서버의 프로젝트 폴더로 이동 (없으면 생성)
             mkdir -p ${{ env.PROJECT_PATH_ON_SERVER }}
             cd ${{ env.PROJECT_PATH_ON_SERVER }}
+
+            # 현재 경로 확인 (디버깅용)
+            echo "Current directory: $(pwd)"
 
             # docker-compose.prod.yml 파일 가져오기 (GitHub에서 직접 다운로드)
             curl -L -o docker-compose.yml https://raw.githubusercontent.com/DonggunLim/kobusCheckSeats/main/docker-compose.prod.yml
