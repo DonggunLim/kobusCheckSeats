@@ -87,7 +87,8 @@ jobs:
           # 2. 홈서버에서 실행할 명령어 스크립트
           script: |
             # 홈서버의 프로젝트 폴더로 이동 (없으면 생성)
-            mkdir -p ${{ env.PROJECT_PATH_ON_SERVER }}
+            sudo mkdir -p ${{ env.PROJECT_PATH_ON_SERVER }}
+            sudo chown -R $USER:$USER ${{ env.PROJECT_PATH_ON_SERVER }}
             cd ${{ env.PROJECT_PATH_ON_SERVER }}
 
             # 현재 경로 확인 (디버깅용)
