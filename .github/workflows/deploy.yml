@@ -86,6 +86,9 @@ jobs:
 
           # 2. 홈서버에서 실행할 명령어 스크립트
           script: |
+            # 홈서버의 프로젝트 폴더로 이동, 없으면 권한 문제 때문에 미리 생성해야 함.
+            cd ${{ env.PROJECT_PATH_ON_SERVER }}
+
             # docker-compose.prod.yml 파일 가져오기 (GitHub에서 직접 다운로드)
             curl -L -o docker-compose.yml https://raw.githubusercontent.com/DonggunLim/kobusCheckSeats/main/docker-compose.prod.yml
 
