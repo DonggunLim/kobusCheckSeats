@@ -106,7 +106,7 @@ jobs:
             docker pull ${{ env.WORKER_IMAGE_NAME }}
 
             # Docker Compose 실행 (worker 2개 스케일링 포함)
-            docker compose up -d --force-recreate --scale worker=2
+            docker compose -p kobus up -d --force-recreate --scale worker=2
 
             # 불필요한 옛날 이미지 정리
             docker system prune -f
