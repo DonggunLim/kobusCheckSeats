@@ -1,5 +1,5 @@
 import { Worker, Job } from 'bullmq';
-import { redisConnection } from '../shared/lib/redis';
+import { getRedisConnection } from '../shared/lib/redis';
 import type { CheckSeatsJobData } from '../shared/lib/queue';
 import { checkBusSeats } from './lib/check-bus-seats';
 
@@ -39,7 +39,7 @@ const worker = new Worker<CheckSeatsJobData>(
     }
   },
   {
-    connection: redisConnection,
+    connection: getRedisConnection(),
     concurrency: 5, // 동시에 처리할 수 있는 작업 수
     limiter: {
       max: 10, // 최대 10개 작업
@@ -69,14 +69,14 @@ worker.on('ready', () => {
 process.on('SIGTERM', async () => {
   console.log('[Worker] SIGTERM received, closing worker...');
   await worker.close();
-  await redisConnection.quit();
+  await getRedisConnection().quit();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('[Worker] SIGINT received, closing worker...');
   await worker.close();
-  await redisConnection.quit();
+  await getRedisConnection().quit();
   process.exit(0);
 });
 

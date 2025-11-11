@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkSeatsQueue, type CheckSeatsJobData } from '@/shared/lib/queue';
+import { getCheckSeatsQueue, type CheckSeatsJobData } from '@/shared/lib/queue';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
       scheduleId,
     };
 
-    const job = await checkSeatsQueue.add('check-seats-job', jobData, {
+    const queue = getCheckSeatsQueue();
+    const job = await queue.add('check-seats-job', jobData, {
       // Job별 옵션 (선택사항)
       priority: body.priority || 1, // 숫자가 낮을수록 우선순위 높음
       delay: body.delay || 0, // 지연 시간 (ms)
@@ -69,7 +70,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const job = await checkSeatsQueue.getJob(jobId);
+    const queue = getCheckSeatsQueue();
+    const job = await queue.getJob(jobId);
 
     if (!job) {
       return NextResponse.json(
