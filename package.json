@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "worker": "tsx src/workers/check-seats.worker.ts",
+    "worker:dev": "tsx watch src/workers/check-seats.worker.ts",
     "postinstall": "npx playwright install --with-deps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,7 +15,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "axios": "^1.11.0"
+    "axios": "^1.11.0",
+    "bullmq": "^5.63.0",
+    "ioredis": "^5.8.2",
+    "playwright": "^1.56.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.16",
