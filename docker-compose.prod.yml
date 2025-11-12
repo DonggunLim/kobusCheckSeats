@@ -2,12 +2,12 @@ services:
   # Next.js 앱 (프로덕션)
   app:
     image: ghcr.io/donggunlim/kobuscheckseat:app-latest
-    container_name: kobus-app-prod
+    container_name: kobus-app
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - REDIS_HOST=${REDIS_HOST:-redis-queue} # 홈서버의 Redis 컨테이너 이름
+      - REDIS_HOST=${REDIS_HOST:-redis-queue}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
@@ -22,7 +22,7 @@ services:
     image: ghcr.io/donggunlim/kobuscheckseat:worker-latest
     environment:
       - NODE_ENV=production
-      - REDIS_HOST=${REDIS_HOST:-redis-queue} # 홈서버의 Redis 컨테이너 이름
+      - REDIS_HOST=${REDIS_HOST:-redis-queue}
       - REDIS_PORT=${REDIS_PORT:-6379}
     networks:
       - home-network
