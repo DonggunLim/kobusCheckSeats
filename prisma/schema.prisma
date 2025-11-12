@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Terminal {
+  terminalCd              String           @id @map("terminal_cd") @db.VarChar(10)
+  terminalNm              String           @map("terminal_nm") @db.VarChar(50)
+  areaCd                  String?          @map("area_cd") @db.VarChar(5)
+  departureRoutesDirect   RoutesDirect[]   @relation("DepartureTerminal")
+  arrivalRoutesDirect     RoutesDirect[]   @relation("ArrivalTerminal")
+  departureRoutesTransfer RoutesTransfer[] @relation("DepartureTerminalTransfer")
+  arrivalRoutesTransfer   RoutesTransfer[] @relation("ArrivalTerminalTransfer")
+  transferRoutesTransfer  RoutesTransfer[] @relation("TransferTerminal")
+
+  @@index([terminalNm], map: "idx_terminal_nm")
+  @@map("terminals")
+}
+
+model RoutesDirect {
+  id                Int      @id @default(autoincrement())
+  deprCd            String   @map("depr_cd") @db.VarChar(10)
+  arvlCd            String   @map("arvl_cd") @db.VarChar(10)
+  takeTime          Int?     @map("take_time") @db.SmallInt
+  homeTickYn        String?  @default("N") @map("home_tick_yn") @db.Char(1)
+  prmmDcYn          String?  @default("N") @map("prmm_dc_yn") @db.Char(1)
+  departureTerminal Terminal @relation("DepartureTerminal", fields: [deprCd], references: [terminalCd], onDelete: NoAction, onUpdate: NoAction, map: "routes_direct_ibfk_1")
+  arrivalTerminal   Terminal @relation("ArrivalTerminal", fields: [arvlCd], references: [terminalCd], onDelete: NoAction, onUpdate: NoAction, map: "routes_direct_ibfk_2")
+
+  @@unique([deprCd, arvlCd], map: "uq_route")
+  @@index([arvlCd], map: "arvl_cd")
+  @@map("routes_direct")
+}
+
+model RoutesTransfer {
+  id                Int      @id @default(autoincrement())
+  deprCd            String   @map("depr_cd") @db.VarChar(10)
+  arvlCd            String   @map("arvl_cd") @db.VarChar(10)
+  tfrCd             String   @map("tfr_cd") @db.VarChar(10)
+  arvlNmAll         String?  @map("arvl_nm_all") @db.VarChar(100)
+  departureTerminal Terminal @relation("DepartureTerminalTransfer", fields: [deprCd], references: [terminalCd], onDelete: NoAction, onUpdate: NoAction, map: "routes_transfer_ibfk_1")
+  arrivalTerminal   Terminal @relation("ArrivalTerminalTransfer", fields: [arvlCd], references: [terminalCd], onDelete: NoAction, onUpdate: NoAction, map: "routes_transfer_ibfk_2")
+  transferTerminal  Terminal @relation("TransferTerminal", fields: [tfrCd], references: [terminalCd], onDelete: NoAction, onUpdate: NoAction, map: "routes_transfer_ibfk_3")
+
+  @@unique([deprCd, arvlCd, tfrCd], map: "uq_route_tfr")
+  @@index([arvlCd], map: "arvl_cd")
+  @@index([tfrCd], map: "tfr_cd")
+  @@map("routes_transfer")
+}
+
+/// Area codes table
+model AreaCodes {
+  areaCd String @id @map("area_cd") @db.VarChar(5)
+  areaNm String @map("area_nm") @db.VarChar(30)
+
+  @@index([areaNm], map: "idx_area_nm")
+  @@map("area_codes")
+}
