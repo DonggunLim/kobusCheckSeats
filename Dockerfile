@@ -45,6 +45,7 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY package.json ./
+COPY --from=builder /app/prisma ./prisma
 
 CMD ["npm", "start"]
 
@@ -60,5 +61,6 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY src/workers ./src/workers
 COPY src/shared ./src/shared
 COPY package.json ./
+COPY --from=builder /app/prisma ./prisma
 
 CMD ["npm", "run", "worker"]
