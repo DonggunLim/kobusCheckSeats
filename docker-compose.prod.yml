@@ -3,10 +3,12 @@ services:
   app:
     image: ghcr.io/donggunlim/kobuscheckseat:app-latest
     container_name: kobus-app
+    command: ["/bin/sh", "-c", "npx prisma migrate deploy && npm start"]
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_HOST=${REDIS_HOST:-redis-queue}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -22,6 +24,7 @@ services:
     image: ghcr.io/donggunlim/kobuscheckseat:worker-latest
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_HOST=${REDIS_HOST:-redis-queue}
       - REDIS_PORT=${REDIS_PORT:-6379}
     networks:
