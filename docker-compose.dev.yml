@@ -1,6 +1,26 @@
 services:
+  # MySQL 서비스
+  kobus-mysql:
+    image: mysql:8.0
+    container_name: kobus-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=kobus
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - kobus-network
+
   # Redis 서비스
-  redis:
+  kobus-redis:
     image: redis:alpine
     container_name: kobus-redis
     ports:
@@ -23,19 +43,21 @@ services:
       target: dev
     image: kobus-app:dev
     container_name: kobus-app
-    command: npm run dev
+    command: ["./entrypoint.app.sh", "npm", "run", "dev"]
     ports:
       - "3000:3000"
     volumes:
       - .:/app
       - /app/node_modules
       - /app/.next
+    env_file:
+      - .env.local
     environment:
       - NODE_ENV=development
-      - REDIS_HOST=redis # 'redis' 서비스 이름을 바라봄
-      - REDIS_PORT=6379
     depends_on:
-      redis:
+      kobus-mysql:
+        condition: service_healthy
+      kobus-redis:
         condition: service_healthy
     networks:
       - kobus-network
@@ -49,18 +71,22 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    env_file:
+      - .env.local
     environment:
       - NODE_ENV=development
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
     depends_on:
-      redis:
+      kobus-mysql:
+        condition: service_healthy
+      kobus-redis:
         condition: service_healthy
     networks:
       - kobus-network
     restart: unless-stopped
 
 volumes:
+  mysql-data:
+    driver: local
   redis-data:
     driver: local
 
