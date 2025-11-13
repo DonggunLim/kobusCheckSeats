@@ -97,6 +97,7 @@ jobs:
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
             echo "GITHUB_TOKEN=${{ secrets.APP_GITHUB_TOKEN }}" >> .env
             echo "GITHUB_REPOSITORY=${{ secrets.APP_GITHUB_REPOSITORY }}" >> .env
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env 
 
             # GHCR 로그인 (홈서버가 이미지를 PULL 할 수 있도록)
             echo "${{ secrets.APP_GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
