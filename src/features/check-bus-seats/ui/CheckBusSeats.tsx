@@ -2,7 +2,7 @@
 
 import { useCheckSeats } from "../model/useCheckSeats";
 import { useSearchForm } from "../model/useSearchForm";
-import { TerminalSelect, TIME_OPTIONS } from "@/entities/bus-route";
+import { RouteSelector, TIME_OPTIONS } from "@/entities/bus-route";
 import { getTodayDate } from "@/shared/lib/date";
 
 export function CheckBusSeats() {
@@ -12,10 +12,16 @@ export function CheckBusSeats() {
     startSession,
     stopSession,
   } = useCheckSeats();
-  const { formData, updateField, toggleTime, handleSubmit } = useSearchForm({
+  const { formData, updateField, updateRoute, toggleTime, handleSubmit } = useSearchForm({
     onSearch: startSession,
   });
-  const { departure, arrival, date, selectedTimes } = formData;
+  const {
+    departureAreaCd,
+    departureTerminalCd,
+    arrivalTerminalCd,
+    date,
+    selectedTimes
+  } = formData;
 
   // 세션 경과 시간 계산
   const getElapsedTime = () => {
@@ -55,18 +61,24 @@ export function CheckBusSeats() {
           좌석 검색 조건
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TerminalSelect
-              value={departure}
-              onChange={(value) => updateField("departure", value)}
-              label="출발지"
-            />
-            <TerminalSelect
-              value={arrival}
-              onChange={(value) => updateField("arrival", value)}
-              label="도착지"
-            />
-          </div>
+          <RouteSelector
+            departureAreaCd={departureAreaCd}
+            departureTerminalCd={departureTerminalCd}
+            arrivalTerminalCd={arrivalTerminalCd}
+            onDepartureAreaChange={(areaCd) => updateField("departureAreaCd", areaCd)}
+            onDepartureTerminalChange={(terminalCd, terminalNm) =>
+              updateRoute({
+                departureTerminalCd: terminalCd,
+                departureTerminalNm: terminalNm
+              })
+            }
+            onArrivalTerminalChange={(terminalCd, terminalNm) =>
+              updateRoute({
+                arrivalTerminalCd: terminalCd,
+                arrivalTerminalNm: terminalNm
+              })
+            }
+          />
 
           {/* 날짜 */}
           <div>

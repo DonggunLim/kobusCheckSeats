@@ -22,9 +22,9 @@ export default function Home() {
           </section>
 
           {/* History */}
-          <aside className="flex-1" aria-label="조회 기록">
+          {/* <aside className="flex-1" aria-label="조회 기록">
             <HistoryFeed limit={10} />
-          </aside>
+          </aside> */}
         </div>
       </main>
     </div>

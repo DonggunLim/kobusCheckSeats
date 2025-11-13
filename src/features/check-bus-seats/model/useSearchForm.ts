@@ -4,8 +4,11 @@ import { saveToStorage, loadFromStorage } from "@/shared/lib/storage";
 import type { RouteQuery } from "@/entities/bus-route";
 
 interface FormData {
-  departure: string;
-  arrival: string;
+  departureAreaCd: string;
+  departureTerminalCd: string;
+  departureTerminalNm: string;
+  arrivalTerminalCd: string;
+  arrivalTerminalNm: string;
   date: string;
   selectedTimes: string[];
 }
@@ -15,8 +18,11 @@ interface UseSearchFormParams {
 }
 
 const DEFAULT_FORM_DATA: FormData = {
-  departure: "서울경부",
-  arrival: "상주",
+  departureAreaCd: "",
+  departureTerminalCd: "",
+  departureTerminalNm: "",
+  arrivalTerminalCd: "",
+  arrivalTerminalNm: "",
   date: getDefaultDate(),
   selectedTimes: [],
 };
@@ -29,8 +35,11 @@ export function useSearchForm({ onSearch }: UseSearchFormParams) {
     const saved = loadFromStorage<FormData>("busSearchConfig");
     if (saved) {
       setFormData({
-        departure: saved.departure || DEFAULT_FORM_DATA.departure,
-        arrival: saved.arrival || DEFAULT_FORM_DATA.arrival,
+        departureAreaCd: saved.departureAreaCd || DEFAULT_FORM_DATA.departureAreaCd,
+        departureTerminalCd: saved.departureTerminalCd || DEFAULT_FORM_DATA.departureTerminalCd,
+        departureTerminalNm: saved.departureTerminalNm || DEFAULT_FORM_DATA.departureTerminalNm,
+        arrivalTerminalCd: saved.arrivalTerminalCd || DEFAULT_FORM_DATA.arrivalTerminalCd,
+        arrivalTerminalNm: saved.arrivalTerminalNm || DEFAULT_FORM_DATA.arrivalTerminalNm,
         date: saved.date || DEFAULT_FORM_DATA.date,
         selectedTimes: saved.selectedTimes || DEFAULT_FORM_DATA.selectedTimes,
       });
@@ -42,6 +51,10 @@ export function useSearchForm({ onSearch }: UseSearchFormParams) {
     value: FormData[K]
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateRoute = (updates: Partial<FormData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
   };
 
   const toggleTime = (time: string) => {
@@ -65,6 +78,11 @@ export function useSearchForm({ onSearch }: UseSearchFormParams) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.departureTerminalNm || !formData.arrivalTerminalNm) {
+      alert("출발지와 도착지를 선택해주세요.");
+      return;
+    }
+
     if (formData.selectedTimes.length === 0) {
       alert("최소 1개 이상의 시간대를 선택해주세요.");
       return;
@@ -72,8 +90,8 @@ export function useSearchForm({ onSearch }: UseSearchFormParams) {
 
     const { month, date: day } = parseDateToMonthDay(formData.date);
     const config: RouteQuery = {
-      departure: formData.departure,
-      arrival: formData.arrival,
+      departure: formData.departureTerminalNm,
+      arrival: formData.arrivalTerminalNm,
       targetMonth: month,
       targetDate: day,
       targetTimes: formData.selectedTimes.sort(),
@@ -88,6 +106,7 @@ export function useSearchForm({ onSearch }: UseSearchFormParams) {
   return {
     formData,
     updateField,
+    updateRoute,
     toggleTime,
     handleSubmit,
   };

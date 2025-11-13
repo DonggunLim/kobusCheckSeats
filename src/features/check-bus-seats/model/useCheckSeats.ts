@@ -19,23 +19,6 @@ export function useCheckSeats() {
   const [error, setError] = useState<string | null>(null);
   const [activeSession, setActiveSession] = useState<Session | null>(null);
 
-  // 활성 세션 폴링
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data } = await axios.get("/api/session");
-        setActiveSession(data.active ? data.session : null);
-      } catch (err) {
-        console.error("Failed to check session:", err);
-      }
-    };
-
-    checkSession();
-    const interval = setInterval(checkSession, 10000); // 10초마다 체크
-
-    return () => clearInterval(interval);
-  }, []);
-
   const startSession = useCallback(async (config: RouteQuery) => {
     setIsChecking(true);
     setError(null);

@@ -4,7 +4,25 @@
  */
 
 /**
- * 터미널 정보
+ * 지역 정보 (DB area_codes)
+ */
+export interface Area {
+  areaCd: string;
+  areaNm: string;
+}
+
+/**
+ * 터미널 정보 (DB terminals)
+ */
+export interface TerminalData {
+  terminalCd: string;
+  terminalNm: string;
+  areaCd: string | null;
+}
+
+/**
+ * 터미널 정보 (Legacy - 호환성 유지)
+ * @deprecated Use TerminalData instead
  */
 export interface Terminal {
   value: string;
