@@ -2,7 +2,7 @@
 
 import { useCheckSeats } from "../model/useCheckSeats";
 import { useSearchForm } from "../model/useSearchForm";
-import { RouteSelector, TIME_OPTIONS } from "@/entities/bus-route";
+import { RouteSelector, useAvailableTimes } from "@/entities/bus-route";
 import { getTodayDate } from "@/shared/lib/date";
 
 export function CheckBusSeats() {
@@ -12,24 +12,24 @@ export function CheckBusSeats() {
     startSession,
     stopSession,
   } = useCheckSeats();
-  const { formData, updateField, updateRoute, toggleTime, handleSubmit } = useSearchForm({
-    onSearch: startSession,
-  });
+  const { formData, updateField, updateRoute, toggleTime, handleSubmit } =
+    useSearchForm({
+      onSearch: startSession,
+    });
   const {
     departureAreaCd,
     departureTerminalCd,
     arrivalTerminalCd,
     date,
-    selectedTimes
+    selectedTimes,
   } = formData;
 
-  // 세션 경과 시간 계산
-  const getElapsedTime = () => {
-    if (!activeSession) return "";
-    const elapsed = Date.now() - new Date(activeSession.startTime).getTime();
-    const minutes = Math.floor(elapsed / 1000 / 60);
-    return `${minutes}분 경과`;
-  };
+  // 선택된 노선의 실제 운행 시간 조회
+  const { times: availableTimes, loading: timesLoading } = useAvailableTimes({
+    departure: departureTerminalCd,
+    arrival: arrivalTerminalCd,
+    enabled: !!(departureTerminalCd && arrivalTerminalCd),
+  });
 
   return (
     <div>
@@ -41,10 +41,6 @@ export function CheckBusSeats() {
               <h3 className="font-semibold text-blue-900">
                 🔄 반복 조회 진행 중
               </h3>
-              <p className="text-sm text-blue-700 mt-1">
-                {activeSession.attemptCount}회 시도 • {getElapsedTime()} •
-                GitHub Actions가 5분마다 자동 조회 중입니다
-              </p>
             </div>
             <button
               onClick={stopSession}
@@ -65,17 +61,19 @@ export function CheckBusSeats() {
             departureAreaCd={departureAreaCd}
             departureTerminalCd={departureTerminalCd}
             arrivalTerminalCd={arrivalTerminalCd}
-            onDepartureAreaChange={(areaCd) => updateField("departureAreaCd", areaCd)}
+            onDepartureAreaChange={(areaCd) =>
+              updateField("departureAreaCd", areaCd)
+            }
             onDepartureTerminalChange={(terminalCd, terminalNm) =>
               updateRoute({
                 departureTerminalCd: terminalCd,
-                departureTerminalNm: terminalNm
+                departureTerminalNm: terminalNm,
               })
             }
             onArrivalTerminalChange={(terminalCd, terminalNm) =>
               updateRoute({
                 arrivalTerminalCd: terminalCd,
-                arrivalTerminalNm: terminalNm
+                arrivalTerminalNm: terminalNm,
               })
             }
           />
@@ -100,29 +98,47 @@ export function CheckBusSeats() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               확인할 시간대 ({selectedTimes.length}개 선택됨)
             </label>
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
-              {TIME_OPTIONS.map((time) => {
-                const isSelected = selectedTimes.includes(time);
-                return (
-                  <button
-                    key={time}
-                    type="button"
-                    onClick={() => toggleTime(time)}
-                    className={`px-2 py-2 text-sm font-medium rounded-lg border transition-colors shrink-0 ${
-                      isSelected
-                        ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
-                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {time}
-                  </button>
-                );
-              })}
-            </div>
-            {selectedTimes.length === 0 && (
-              <p className="mt-2 text-sm text-red-600">
-                최소 1개 이상의 시간대를 선택해주세요.
+
+            {/* 노선 선택 전 안내 메시지 */}
+            {!departureTerminalCd || !arrivalTerminalCd ? (
+              <p className="text-sm text-gray-500 py-8 text-center">
+                출발지와 도착지를 먼저 선택해주세요
               </p>
+            ) : timesLoading ? (
+              <p className="text-sm text-gray-500 py-8 text-center">
+                운행 시간 조회 중...
+              </p>
+            ) : availableTimes.length === 0 ? (
+              <p className="text-sm text-red-600 py-8 text-center">
+                해당 노선의 운행 정보가 없습니다
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
+                  {availableTimes.map((time: string) => {
+                    const isSelected = selectedTimes.includes(time);
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => toggleTime(time)}
+                        className={`px-2 py-2 text-sm font-medium rounded-lg border transition-colors shrink-0 ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
+                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedTimes.length === 0 && (
+                  <p className="mt-2 text-sm text-red-600">
+                    최소 1개 이상의 시간대를 선택해주세요.
+                  </p>
+                )}
+              </>
             )}
           </div>
 

@@ -60,3 +60,44 @@ model AreaCodes {
   @@index([areaNm], map: "idx_area_nm")
   @@map("area_codes")
 }
+
+/// Bus schedules table - stores available departure times for each route
+model BusSchedules {
+  id            Int      @id @default(autoincrement())
+  deprCd        String   @map("depr_cd") @db.VarChar(10)
+  arvlCd        String   @map("arvl_cd") @db.VarChar(10)
+  departureTime String   @map("departure_time") @db.VarChar(5) // HH:MM format (e.g., "09:30")
+  busClass      String?  @map("bus_class") @db.VarChar(20) // 우등, 고속, 프리미엄 등
+  busCompany    String?  @map("bus_company") @db.VarChar(50) // 운수사
+  isViaRoute    Boolean  @default(false) @map("is_via_route") // 경유 여부
+  viaLocation   String?  @map("via_location") @db.VarChar(100) // 경유지
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([deprCd, arvlCd, departureTime, busClass], map: "uq_schedule")
+  @@index([deprCd, arvlCd], map: "idx_route")
+  @@index([departureTime], map: "idx_time")
+  @@map("bus_schedules")
+}
+
+/// Job history table - tracks all queue jobs for seat checking
+model JobHistory {
+  id            Int      @id @default(autoincrement())
+  jobId         String   @unique @map("job_id") @db.VarChar(50) // BullMQ job ID
+  deprCd        String   @map("depr_cd") @db.VarChar(10)
+  arvlCd        String   @map("arvl_cd") @db.VarChar(10)
+  targetMonth   String   @map("target_month") @db.VarChar(7) // YYYY-MM
+  targetDate    String   @map("target_date") @db.VarChar(10) // YYYY-MM-DD
+  targetTimes   String   @map("target_times") @db.Text // JSON array of times
+  status        String   @default("waiting") @map("status") @db.VarChar(20) // waiting, active, completed, failed
+  progress      Int      @default(0) @map("progress") // 0-100
+  result        String?  @map("result") @db.Text // JSON result data
+  error         String?  @map("error") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  completedAt   DateTime? @map("completed_at")
+
+  @@index([status], map: "idx_status")
+  @@index([createdAt], map: "idx_created_at")
+  @@map("job_history")
+}

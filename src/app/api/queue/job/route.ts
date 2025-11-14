@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCheckSeatsQueue, type CheckSeatsJobData } from '@/shared/lib/queue';
+import prisma from '@/shared/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +43,25 @@ export async function POST(request: NextRequest) {
       removeOnComplete: true,
       removeOnFail: false,
     });
+
+    // DB에 잡 히스토리 저장
+    try {
+      await prisma.jobHistory.create({
+        data: {
+          jobId: job.id as string,
+          deprCd: departure,
+          arvlCd: arrival,
+          targetMonth,
+          targetDate,
+          targetTimes: JSON.stringify(targetTimes),
+          status: 'waiting',
+          progress: 0,
+        },
+      });
+    } catch (dbError) {
+      console.error('Failed to save job history to DB:', dbError);
+      // DB 저장 실패해도 큐에는 추가됐으므로 계속 진행
+    }
 
     return NextResponse.json({
       success: true,

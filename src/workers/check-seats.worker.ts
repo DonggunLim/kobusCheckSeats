@@ -2,6 +2,8 @@ import { Worker, Job } from 'bullmq';
 import { getRedisConnection } from '../shared/lib/redis';
 import type { CheckSeatsJobData } from '../shared/lib/queue';
 import { checkBusSeats } from './lib/check-bus-seats';
+import prisma from '../shared/lib/prisma';
+import { jobEvents } from '../shared/lib/job-events';
 
 // 워커 생성
 const worker = new Worker<CheckSeatsJobData>(
@@ -12,6 +14,9 @@ const worker = new Worker<CheckSeatsJobData>(
     const { departure, arrival, targetMonth, targetDate, targetTimes } = job.data;
 
     try {
+      // DB 상태 업데이트: active
+      await updateJobStatus(job.id as string, 'active', 10);
+
       // 진행률 업데이트
       await job.updateProgress(10);
 
@@ -26,6 +31,7 @@ const worker = new Worker<CheckSeatsJobData>(
 
       // 진행률 업데이트
       await job.updateProgress(90);
+      await updateJobStatus(job.id as string, 'active', 90);
 
       console.log(`[Worker] Job ${job.id} completed successfully`);
       console.log(`[Worker] Found seats: ${result.foundSeats}`);
@@ -48,13 +54,74 @@ const worker = new Worker<CheckSeatsJobData>(
   }
 );
 
+// DB 상태 업데이트 헬퍼 함수
+async function updateJobStatus(
+  jobId: string,
+  status: string,
+  progress: number,
+  result?: any,
+  error?: string
+) {
+  try {
+    const updatedJob = await prisma.jobHistory.update({
+      where: { jobId },
+      data: {
+        status,
+        progress,
+        ...(result ? { result: JSON.stringify(result) } : {}),
+        ...(error ? { error } : {}),
+        ...(status === 'completed' || status === 'failed' ? { completedAt: new Date() } : {}),
+        updatedAt: new Date(),
+      },
+    });
+
+    // SSE로 실시간 업데이트 전송
+    jobEvents.emitJobUpdate(jobId, {
+      id: updatedJob.id,
+      jobId: updatedJob.jobId,
+      status: updatedJob.status,
+      progress: updatedJob.progress,
+      deprCd: updatedJob.deprCd,
+      arvlCd: updatedJob.arvlCd,
+      targetDate: updatedJob.targetDate,
+      targetTimes: JSON.parse(updatedJob.targetTimes),
+      result: updatedJob.result ? JSON.parse(updatedJob.result) : null,
+      error: updatedJob.error,
+      createdAt: updatedJob.createdAt,
+      updatedAt: updatedJob.updatedAt,
+      completedAt: updatedJob.completedAt,
+    });
+  } catch (err) {
+    console.error(`[Worker] Failed to update job ${jobId} status in DB:`, err);
+  }
+}
+
 // 워커 이벤트 리스너
-worker.on('completed', (job: Job) => {
+worker.on('completed', async (job: Job) => {
   console.log(`[Worker] ✓ Job ${job.id} completed`);
+
+  // DB 상태 업데이트: completed
+  await updateJobStatus(
+    job.id as string,
+    'completed',
+    100,
+    job.returnvalue
+  );
 });
 
-worker.on('failed', (job: Job | undefined, err: Error) => {
+worker.on('failed', async (job: Job | undefined, err: Error) => {
   console.error(`[Worker] ✗ Job ${job?.id} failed:`, err.message);
+
+  // DB 상태 업데이트: failed
+  if (job?.id) {
+    await updateJobStatus(
+      job.id as string,
+      'failed',
+      job.progress as number || 0,
+      undefined,
+      err.message
+    );
+  }
 });
 
 worker.on('error', (err: Error) => {

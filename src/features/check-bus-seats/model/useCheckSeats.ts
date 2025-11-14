@@ -1,7 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { RouteQuery } from "@/entities/bus-route";
-import { busCheckEvents } from "@/shared/lib/events";
-import { CheckResult } from "@/entities/check-result";
 import { removeFromStorage } from "@/shared/lib/storage";
 import axios from "axios";
 
@@ -15,7 +13,6 @@ interface Session {
 
 export function useCheckSeats() {
   const [isChecking, setIsChecking] = useState(false);
-  const [result, setResult] = useState<CheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeSession, setActiveSession] = useState<Session | null>(null);
 
@@ -49,7 +46,6 @@ export function useCheckSeats() {
     try {
       await axios.delete("/api/session");
       setActiveSession(null);
-      setResult(null);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "세션 종료 실패";
@@ -60,13 +56,11 @@ export function useCheckSeats() {
   }, []);
 
   const reset = useCallback(() => {
-    setResult(null);
     setError(null);
   }, []);
 
   return {
     isChecking,
-    result,
     error,
     activeSession,
     startSession,

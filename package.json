@@ -9,7 +9,9 @@
     "worker": "tsx src/workers/check-seats.worker.ts",
     "worker:dev": "tsx watch src/workers/check-seats.worker.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:update": "tsx src/shared/scripts/update-master-data.ts"
+    "db:update": "tsx src/shared/scripts/update-master-data.ts",
+    "db:check-routes": "tsx src/shared/scripts/check-available-routes.ts",
+    "db:check-schedule": "tsx src/shared/scripts/update-routes-schedules.ts"
   },
   "author": "DonggunLim",
   "license": "ISC",
@@ -17,6 +19,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "axios": "^1.11.0",
+    "axios-cookiejar-support": "^6.0.4",
     "bullmq": "^5.63.0",
     "dotenv": "^17.2.3",
     "ioredis": "^5.8.2",
@@ -25,6 +28,7 @@
     "prisma": "^6.19.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "tough-cookie": "^5.1.2",
     "tsx": "^4.20.6"
   },
   "devDependencies": {
