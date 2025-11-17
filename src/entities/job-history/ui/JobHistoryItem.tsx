@@ -63,18 +63,12 @@ export function JobHistoryItemCard({ job }: JobHistoryItemProps) {
           </div>
         </div>
 
-        {/* 오른쪽: 진행 상태 */}
+        {/* 오른쪽: 재시도 상태 */}
         <div className="flex flex-col items-end gap-2">
-          {job.status === 'active' && (
+          {job.retryCount > 0 && (
             <div className="text-right">
               <div className="text-sm font-medium text-blue-600">
-                {job.progress}%
-              </div>
-              <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
-                <div
-                  className="h-full bg-blue-500 transition-all duration-300"
-                  style={{ width: `${job.progress}%` }}
-                />
+                {job.retryCount}회 조회
               </div>
             </div>
           )}

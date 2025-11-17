@@ -1,24 +1,24 @@
-import { Queue } from 'bullmq';
-import { getRedisConnection } from './redis';
-import type { RouteQuery } from '../types/bus-check.types';
+import { Queue } from "bullmq";
+import { getRedisConnection } from "./redis";
+import type { RouteQuery } from "../types/bus-check.types";
 
-// Job 데이터 타입 정의 (RouteQuery 확장)
+// Job 데이터 타입 정의 (Prisma JobHistory와 호환되는 형태)
 export interface CheckSeatsJobData extends RouteQuery {
-  userId?: string;
-  scheduleId?: string;
+  userId?: string; // 사용자 ID (선택)
+  scheduleId?: string; // 스케줄 ID (선택)
+  retryCount?: number; // 재시도 횟수 추적
 }
 
 let checkSeatsQueue: Queue<CheckSeatsJobData> | null = null;
 
-// 큐를 lazy하게 생성
 export function getCheckSeatsQueue(): Queue<CheckSeatsJobData> {
   if (!checkSeatsQueue) {
-    checkSeatsQueue = new Queue<CheckSeatsJobData>('check-seats', {
+    checkSeatsQueue = new Queue<CheckSeatsJobData>("check-seats", {
       connection: getRedisConnection(),
       defaultJobOptions: {
         attempts: 3, // 기본 재시도 횟수
         backoff: {
-          type: 'exponential',
+          type: "exponential",
           delay: 2000, // 2초부터 시작하여 지수적으로 증가
         },
         removeOnComplete: {
@@ -32,8 +32,8 @@ export function getCheckSeatsQueue(): Queue<CheckSeatsJobData> {
     });
 
     // 큐 이벤트 리스너
-    checkSeatsQueue.on('error', (error) => {
-      console.error('Queue error:', error);
+    checkSeatsQueue.on("error", (error) => {
+      console.error("Queue error:", error);
     });
   }
 

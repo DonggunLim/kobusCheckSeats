@@ -1,11 +1,14 @@
 /**
  * 버스 좌석 확인 관련 타입 정의
+ * Prisma 모델을 기반으로 타입을 정의합니다.
  */
 
-// 노선 조회 설정
+import type { JobHistory, Terminal } from '@prisma/client';
+
+// 노선 조회 설정 (JobHistory 모델 기반)
 export interface RouteQuery {
-  departure: string; // 출발지
-  arrival: string; // 도착지
+  departure: string; // 출발지 터미널 이름
+  arrival: string; // 도착지 터미널 이름
   targetMonth: string; // 목표 월 (예: "11월")
   targetDate: string; // 목표 일자 (예: "15")
   targetTimes: string[]; // 확인할 시간대 목록 (예: ["08:00", "09:30"])
@@ -31,3 +34,17 @@ export interface CheckResult {
   firstFoundTime: string | null; // 최초 좌석 발견 시간
   durationMs: number; // 소요 시간 (밀리초)
 }
+
+// JobHistory 생성용 데이터 타입 (Prisma 기반)
+export type JobHistoryCreateData = Omit<
+  JobHistory,
+  'id' | 'createdAt' | 'updatedAt' | 'completedAt'
+>;
+
+// JobHistory 업데이트용 데이터 타입 (Prisma 기반)
+export type JobHistoryUpdateData = Partial<
+  Omit<JobHistory, 'id' | 'jobId' | 'createdAt'>
+>;
+
+// Terminal 관련 타입 재export (필요시 사용)
+export type { Terminal, JobHistory } from '@prisma/client';

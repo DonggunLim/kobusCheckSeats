@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
           targetDate,
           targetTimes: JSON.stringify(targetTimes),
           status: 'waiting',
-          progress: 0,
+          retryCount: 0,
         },
       });
     } catch (dbError) {

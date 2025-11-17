@@ -11,7 +11,7 @@ export interface JobHistoryItem {
   targetDate: string;
   targetTimes: string[];
   status: 'waiting' | 'active' | 'completed' | 'failed' | 'delayed';
-  progress: number;
+  retryCount: number;
   result?: any;
   error?: string;
   createdAt: string;
