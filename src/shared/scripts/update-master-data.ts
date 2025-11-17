@@ -2,8 +2,6 @@ import axios from "axios";
 import { config } from "dotenv";
 import prisma from "../lib/prisma";
 
-// Load environment-specific .env file
-// Development: .env.local, Production: .env
 const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.local";
 config({ path: envFile });
 const KOBUS_MASTER_DATA_URL = "https://www.kobus.co.kr/mrs/readRotLinInf.ajax";
@@ -29,7 +27,6 @@ const AREA_CODE_MAP: Record<string, string> = {
   "27": "대구",
   "26": "부산",
   "11": "서울",
-  // (참고: Kobus 사이트에서 '제주' 등 추가 지역이 있는지 확인 필요)
 };
 
 /**

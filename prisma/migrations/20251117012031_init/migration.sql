@@ -45,6 +45,48 @@ CREATE TABLE `area_codes` (
     PRIMARY KEY (`area_cd`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `bus_schedules` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `depr_cd` VARCHAR(10) NOT NULL,
+    `arvl_cd` VARCHAR(10) NOT NULL,
+    `departure_time` VARCHAR(5) NOT NULL,
+    `bus_class` VARCHAR(20) NULL,
+    `bus_company` VARCHAR(50) NULL,
+    `is_via_route` BOOLEAN NOT NULL DEFAULT false,
+    `via_location` VARCHAR(100) NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+
+    INDEX `idx_route`(`depr_cd`, `arvl_cd`),
+    INDEX `idx_time`(`departure_time`),
+    UNIQUE INDEX `uq_schedule`(`depr_cd`, `arvl_cd`, `departure_time`, `bus_class`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `job_history` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `job_id` VARCHAR(50) NOT NULL,
+    `depr_cd` VARCHAR(10) NOT NULL,
+    `arvl_cd` VARCHAR(10) NOT NULL,
+    `target_month` VARCHAR(7) NOT NULL,
+    `target_date` VARCHAR(10) NOT NULL,
+    `target_times` TEXT NOT NULL,
+    `status` VARCHAR(20) NOT NULL DEFAULT 'waiting',
+    `progress` INTEGER NOT NULL DEFAULT 0,
+    `result` TEXT NULL,
+    `error` TEXT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+    `completed_at` DATETIME(3) NULL,
+
+    UNIQUE INDEX `job_history_job_id_key`(`job_id`),
+    INDEX `idx_status`(`status`),
+    INDEX `idx_created_at`(`created_at`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `routes_direct` ADD CONSTRAINT `routes_direct_ibfk_1` FOREIGN KEY (`depr_cd`) REFERENCES `terminals`(`terminal_cd`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 

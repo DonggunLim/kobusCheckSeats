@@ -10,7 +10,7 @@
     "worker:dev": "tsx watch src/workers/check-seats.worker.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:update": "tsx src/shared/scripts/update-master-data.ts",
-    "db:check-routes": "tsx src/shared/scripts/check-available-routes.ts",
+    "db:check-routes": "tsx src/shared/scripts/update-master-data.ts",
     "db:check-schedule": "tsx src/shared/scripts/update-routes-schedules.ts"
   },
   "author": "DonggunLim",
