@@ -6,6 +6,7 @@ services:
     ports:
       - "3306:3306"
     environment:
+      - TZ=Asia/Seoul
       - MYSQL_ROOT_PASSWORD=
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
       - MYSQL_DATABASE=kobus
