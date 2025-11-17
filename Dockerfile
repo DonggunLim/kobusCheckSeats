@@ -33,6 +33,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Entrypoint 스크립트 실행 권한 부여
+RUN chmod +x entrypoint.app.sh entrypoint.worker.sh
+
 CMD ["npm", "run", "dev"]
 
 # --- Production image for Next.js App ---
@@ -46,6 +49,10 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY package.json ./
 COPY --from=builder /app/prisma ./prisma
+
+# Entrypoint 스크립트 복사 및 실행 권한 부여
+COPY entrypoint.app.sh ./
+RUN chmod +x entrypoint.app.sh
 
 CMD ["npm", "start"]
 
@@ -62,5 +69,9 @@ COPY src/workers ./src/workers
 COPY src/shared ./src/shared
 COPY package.json ./
 COPY --from=builder /app/prisma ./prisma
+
+# Entrypoint 스크립트 복사 및 실행 권한 부여
+COPY entrypoint.worker.sh ./
+RUN chmod +x entrypoint.worker.sh
 
 CMD ["npm", "run", "worker"]
