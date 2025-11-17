@@ -56,11 +56,9 @@ function getTargetKST(daysOffset: number): { ymd: string; formatted: string } {
  * 모든 활성 노선의 시간표 크롤링
  */
 async function crawlAllActiveRoutes() {
-  console.log("[CRAWL] 🚍 버스 노선 시간표 크롤링 시작...\n");
+  console.log("[CRAWL] 시간표 크롤링 시작");
 
   try {
-    // 1. 세션 쿠키 획득
-    console.log("[AUTH] 세션 쿠키 획득 중...");
     await client.get("https://www.kobus.co.kr/mrs/rotinf.do", {
       headers: {
         "User-Agent":
@@ -69,9 +67,7 @@ async function crawlAllActiveRoutes() {
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
       },
     });
-    console.log("[AUTH] ✅ 세션 쿠키 확보 완료\n");
 
-    // 2. DB에서 모든 노선 로드
     const routes = await prisma.routesDirect.findMany({
       select: {
         deprCd: true,
@@ -82,22 +78,15 @@ async function crawlAllActiveRoutes() {
     });
 
     const { ymd: deprDt, formatted: deprDtAll } = getTargetKST(2);
-
-    console.log(`📊 대상 노선: ${routes.length}개`);
-    console.log(`📅 크롤링 날짜: ${deprDt} (${deprDtAll})\n`);
+    console.log(`[CRAWL] 대상 노선 ${routes.length}개 | 날짜: ${deprDt}`);
 
     let totalSchedules = 0;
     let successCount = 0;
     let failCount = 0;
 
-    // 3. 각 노선별로 시간표 크롤링
     for (let i = 0; i < routes.length; i++) {
       const route = routes[i];
       const routeName = `${route.departureTerminal.terminalNm} → ${route.arrivalTerminal.terminalNm}`;
-
-      console.log(
-        `\n[${i + 1}/${routes.length}] ${routeName} (${route.deprCd}→${route.arvlCd})`
-      );
 
       try {
         // alcnSrch.do에 POST하여 HTML 응답 받기
@@ -140,7 +129,6 @@ async function crawlAllActiveRoutes() {
         const scheduleLinks = $('a[onclick*="fnSatsChc"]');
 
         if (scheduleLinks.length === 0) {
-          console.log(`  └ ⚠️ 배차 정보 없음`);
           failCount++;
           continue;
         }
@@ -188,7 +176,6 @@ async function crawlAllActiveRoutes() {
           });
         });
 
-        // DB 저장 (기존 데이터 삭제 후 새로 생성)
         if (scheduleList.length > 0) {
           const transaction = await prisma.$transaction([
             prisma.busSchedules.deleteMany({
@@ -202,20 +189,12 @@ async function crawlAllActiveRoutes() {
           const createdCount = transaction[1].count;
           totalSchedules += createdCount;
           successCount++;
-          console.log(
-            `  └ ✅ ${createdCount}개 배차 저장 완료 (누적: ${totalSchedules}개)`
-          );
         } else {
-          console.log(`  └ ⚠️ 배차 정보 없음`);
           failCount++;
         }
       } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error(`  └ ❌ 실패: ${error.message}`);
-          console.error(`  └    상태 코드: ${error.response?.status}`);
-        } else {
-          console.error(`  └ ❌ 실패: ${(error as Error).message}`);
-        }
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`[CRAWL] ${routeName} 실패: ${errorMsg}`);
         failCount++;
       }
 
@@ -225,20 +204,13 @@ async function crawlAllActiveRoutes() {
       }
     }
 
-    // 최종 결과 출력
-    console.log("\n" + "=".repeat(60));
-    console.log("🎉 크롤링 완료!");
-    console.log(`📊 통계:`);
-    console.log(`  - 처리 노선: ${routes.length}개`);
-    console.log(`  - ✅ 성공: ${successCount}개`);
-    console.log(`  - ❌ 실패: ${failCount}개`);
-    console.log(`  - 🕒 총 배차: ${totalSchedules}개`);
-    console.log("=".repeat(60));
+    console.log(
+      `[CRAWL] 완료 | 처리: ${routes.length}개 | 성공: ${successCount}개 | 실패: ${failCount}개 | 총 배차: ${totalSchedules}개`
+    );
   } catch (error) {
-    console.error("\n❌ 크롤링 중 치명적 오류:", error);
+    console.error("[CRAWL] 크롤링 실패:", error);
   } finally {
     await prisma.$disconnect();
-    console.log("\n[CRAWL] 종료");
   }
 }
 
