@@ -4,9 +4,9 @@ import type { RouteQuery } from "../types/bus-check.types";
 
 // Job 데이터 타입 정의 (Prisma JobHistory와 호환되는 형태)
 export interface CheckSeatsJobData extends RouteQuery {
-  userId?: string; // 사용자 ID (선택)
   scheduleId?: string; // 스케줄 ID (선택)
   retryCount?: number; // 재시도 횟수 추적
+  startTime?: number; // 잡 시작 시간 (타임아웃 체크용)
 }
 
 let checkSeatsQueue: Queue<CheckSeatsJobData> | null = null;

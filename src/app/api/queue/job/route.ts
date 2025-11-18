@@ -1,17 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCheckSeatsQueue, type CheckSeatsJobData } from '@/shared/lib/queue';
-import prisma from '@/shared/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { getCheckSeatsQueue, type CheckSeatsJobData } from "@/shared/lib/queue";
+import prisma from "@/shared/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     // 요청 데이터 검증
-    const { departure, arrival, targetMonth, targetDate, targetTimes, userId, scheduleId } = body;
+    const {
+      departure,
+      arrival,
+      targetMonth,
+      targetDate,
+      targetTimes,
+      scheduleId,
+    } = body;
 
     if (!departure || !arrival || !targetMonth || !targetDate || !targetTimes) {
       return NextResponse.json(
-        { error: 'Missing required fields: departure, arrival, targetMonth, targetDate, targetTimes' },
+        {
+          error:
+            "Missing required fields: departure, arrival, targetMonth, targetDate, targetTimes",
+        },
         { status: 400 }
       );
     }
@@ -19,10 +29,34 @@ export async function POST(request: NextRequest) {
     // targetTimes가 배열인지 확인
     if (!Array.isArray(targetTimes) || targetTimes.length === 0) {
       return NextResponse.json(
-        { error: 'targetTimes must be a non-empty array' },
+        { error: "targetTimes must be a non-empty array" },
         { status: 400 }
       );
     }
+
+    // 목표 시간까지 필요한 attempts 계산
+    const nowKST = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" })
+    );
+    const year = nowKST.getFullYear();
+    const month = parseInt(targetMonth.replace("월", ""));
+    const day = parseInt(targetDate);
+
+    // 가장 늦은 시간 찾기
+    const lastTime = targetTimes.sort().reverse()[0];
+    const [hour, minute] = lastTime.split(":").map(Number);
+
+    // 목표 날짜+시간 생성
+    const targetDateTime = new Date(year, month - 1, day, hour, minute);
+
+    // 남은 시간 계산 (밀리초)
+    const remainingTime = targetDateTime.getTime() - nowKST.getTime();
+
+    // 3분 간격으로 몇 번 시도할 수 있는지 계산
+    const retryInterval = 3 * 60 * 1000; // 3분
+    const maxAttempts = Math.max(1, Math.ceil(remainingTime / retryInterval));
+
+    console.log(`[Job Creation] 목표 시간까지 ${Math.floor(remainingTime / 1000 / 60)}분 남음, 최대 ${maxAttempts}회 시도 가능`);
 
     // 큐에 Job 추가
     const jobData: CheckSeatsJobData = {
@@ -31,22 +65,27 @@ export async function POST(request: NextRequest) {
       targetMonth,
       targetDate,
       targetTimes,
-      userId,
       scheduleId,
     };
 
     const queue = getCheckSeatsQueue();
-    const job = await queue.add('check-seats-job', jobData, {
-      // Job별 옵션 (선택사항)
-      priority: body.priority || 1, // 숫자가 낮을수록 우선순위 높음
-      delay: body.delay || 0, // 지연 시간 (ms)
+    const job = await queue.add("check-seats-job", jobData, {
+      // Job별 옵션
+      priority: body.priority || 1,
+      delay: body.delay || 0,
       removeOnComplete: true,
       removeOnFail: false,
+      attempts: maxAttempts, // 목표 시간까지 계산된 attempts
+      backoff: {
+        type: "fixed",
+        delay: retryInterval, // 3분 고정 대기
+      },
     });
 
     // DB에 잡 히스토리 저장
+    let createdJob;
     try {
-      await prisma.jobHistory.create({
+      createdJob = await prisma.jobHistory.create({
         data: {
           jobId: job.id as string,
           deprCd: departure,
@@ -54,24 +93,31 @@ export async function POST(request: NextRequest) {
           targetMonth,
           targetDate,
           targetTimes: JSON.stringify(targetTimes),
-          status: 'waiting',
+          status: "waiting",
           retryCount: 0,
         },
       });
+
+      console.log("[Job Created] Job saved to DB:", {
+        id: createdJob.id,
+        jobId: createdJob.jobId,
+        deprCd: createdJob.deprCd,
+        arvlCd: createdJob.arvlCd,
+      });
     } catch (dbError) {
-      console.error('Failed to save job history to DB:', dbError);
+      console.error("Failed to save job history to DB:", dbError);
       // DB 저장 실패해도 큐에는 추가됐으므로 계속 진행
     }
 
     return NextResponse.json({
       success: true,
       jobId: job.id,
-      message: 'Job added to queue successfully',
+      message: "Job added to queue successfully",
     });
   } catch (error) {
-    console.error('Error adding job to queue:', error);
+    console.error("Error adding job to queue:", error);
     return NextResponse.json(
-      { error: 'Failed to add job to queue' },
+      { error: "Failed to add job to queue" },
       { status: 500 }
     );
   }
@@ -81,11 +127,11 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const jobId = searchParams.get('jobId');
+    const jobId = searchParams.get("jobId");
 
     if (!jobId) {
       return NextResponse.json(
-        { error: 'Missing jobId parameter' },
+        { error: "Missing jobId parameter" },
         { status: 400 }
       );
     }
@@ -94,10 +140,7 @@ export async function GET(request: NextRequest) {
     const job = await queue.getJob(jobId);
 
     if (!job) {
-      return NextResponse.json(
-        { error: 'Job not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
     const state = await job.getState();
@@ -115,9 +158,9 @@ export async function GET(request: NextRequest) {
       finishedOn: job.finishedOn,
     });
   } catch (error) {
-    console.error('Error fetching job status:', error);
+    console.error("Error fetching job status:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch job status' },
+      { error: "Failed to fetch job status" },
       { status: 500 }
     );
   }

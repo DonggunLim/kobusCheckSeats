@@ -30,48 +30,25 @@ export function useJobHistory(limit: number = 20, autoRefresh: boolean = true) {
     fetchJobs();
   }, [fetchJobs]);
 
-  // SSE로 실시간 업데이트 수신
+  // 폴링으로 주기적 업데이트 (3초마다)
   useEffect(() => {
-    if (!autoRefresh) return;
+    if (!autoRefresh) {
+      console.log('[Polling] Auto-refresh is disabled');
+      return;
+    }
 
-    const eventSource = new EventSource('/api/jobs/stream');
+    console.log('[Polling] Starting polling every 3 seconds');
 
-    eventSource.onmessage = (event) => {
-      try {
-        const updatedJob = JSON.parse(event.data) as JobHistoryItem;
-
-        // 기존 잡 목록에서 업데이트된 잡 찾아서 교체
-        setJobs((prevJobs) => {
-          const existingIndex = prevJobs.findIndex(
-            (job) => job.jobId === updatedJob.jobId
-          );
-
-          if (existingIndex >= 0) {
-            // 기존 잡 업데이트
-            const newJobs = [...prevJobs];
-            newJobs[existingIndex] = updatedJob;
-            return newJobs;
-          } else {
-            // 새로운 잡 추가 (최상단에)
-            return [updatedJob, ...prevJobs].slice(0, limit);
-          }
-        });
-      } catch (err) {
-        console.error('Failed to parse SSE message:', err);
-      }
-    };
-
-    eventSource.onerror = (err) => {
-      console.error('SSE connection error:', err);
-      eventSource.close();
-      // 연결 끊김 시 폴백: 한 번 다시 fetch
+    const intervalId = setInterval(() => {
+      console.log('[Polling] Fetching latest job updates...');
       fetchJobs();
-    };
+    }, 3000); // 3초마다 폴링
 
     return () => {
-      eventSource.close();
+      console.log('[Polling] Stopping polling');
+      clearInterval(intervalId);
     };
-  }, [autoRefresh, limit, fetchJobs]);
+  }, [autoRefresh, fetchJobs]);
 
   return {
     jobs,

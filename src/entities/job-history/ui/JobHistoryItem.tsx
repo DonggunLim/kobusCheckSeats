@@ -5,87 +5,63 @@ interface JobHistoryItemProps {
 }
 
 export function JobHistoryItemCard({ job }: JobHistoryItemProps) {
-  const statusColors = {
-    waiting: 'bg-gray-100 text-gray-700',
-    active: 'bg-blue-100 text-blue-700',
-    completed: 'bg-green-100 text-green-700',
-    failed: 'bg-red-100 text-red-700',
-    delayed: 'bg-yellow-100 text-yellow-700',
+  const statusConfig = {
+    waiting: { bg: 'bg-gray-100', text: 'text-gray-700', label: '대기' },
+    active: { bg: 'bg-blue-100', text: 'text-blue-700', label: '진행중' },
+    completed: { bg: 'bg-green-100', text: 'text-green-700', label: '완료' },
+    failed: { bg: 'bg-red-100', text: 'text-red-700', label: '실패' },
+    delayed: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: '지연' },
   };
 
-  const statusLabels = {
-    waiting: '대기중',
-    active: '진행중',
-    completed: '완료',
-    failed: '실패',
-    delayed: '지연',
-  };
+  const status = statusConfig[job.status];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString('ko-KR', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${month}월 ${day}일 ${hours}:${minutes}`;
   };
 
   return (
-    <div className="p-4 hover:bg-gray-50 transition-colors border-b border-gray-200">
-      <div className="flex items-start justify-between gap-4">
-        {/* 왼쪽: 노선 정보 */}
+    <div className="p-4 hover:bg-gray-50 transition-colors">
+      <div className="flex items-center justify-between gap-3">
+        {/* 노선 정보 */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold text-gray-900 truncate">
-              {job.deprCd} → {job.arvlCd}
-            </h3>
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                statusColors[job.status]
-              }`}
-            >
-              {statusLabels[job.status]}
-            </span>
+          <div className="font-semibold text-lg text-gray-900 mb-1">
+            {job.deprCd} → {job.arvlCd}
+          </div>
+          <div className="text-sm text-gray-700 mb-2">
+            <span className="font-medium">예약 희망:</span> {job.targetMonth} {job.targetDate}일 ({job.targetTimes.join(', ')})
           </div>
 
-          <div className="text-sm text-gray-600 space-y-1">
-            <p>
-              <span className="font-medium">날짜:</span> {job.targetDate}
-            </p>
-            <p>
-              <span className="font-medium">시간:</span>{' '}
-              {job.targetTimes.join(', ')}
-            </p>
-            <p className="text-xs text-gray-500">
-              추가: {formatDate(job.createdAt)}
-            </p>
+          {/* 메타 정보 */}
+          <div className="flex items-center gap-3 text-xs text-gray-500">
+            <span>등록: {formatDate(job.createdAt)}</span>
+            {job.retryCount > 0 && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="text-blue-600 font-medium">
+                  {job.retryCount}회 조회
+                </span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* 오른쪽: 재시도 상태 */}
-        <div className="flex flex-col items-end gap-2">
-          {job.retryCount > 0 && (
-            <div className="text-right">
-              <div className="text-sm font-medium text-blue-600">
-                {job.retryCount}회 조회
-              </div>
-            </div>
-          )}
-
-          {job.status === 'completed' && job.completedAt && (
-            <div className="text-xs text-gray-500">
-              완료: {formatDate(job.completedAt)}
-            </div>
-          )}
-
-          {job.status === 'failed' && job.error && (
-            <div className="text-xs text-red-600 max-w-xs truncate">
-              {job.error}
-            </div>
-          )}
+        {/* 상태 */}
+        <div className={`px-3 py-1.5 rounded-lg ${status.bg} ${status.text} font-medium text-sm whitespace-nowrap`}>
+          {status.label}
         </div>
       </div>
+
+      {/* 에러 메시지 (실패시에만) */}
+      {job.status === 'failed' && job.error && (
+        <div className="mt-2 text-xs text-red-600 truncate">
+          {job.error}
+        </div>
+      )}
     </div>
   );
 }
