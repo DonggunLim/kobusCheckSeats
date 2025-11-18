@@ -1,16 +1,16 @@
-import type { JobHistoryItem } from '../model/types';
+import type { JobHistoryItem } from "../model/types";
 
-interface JobHistoryItemProps {
+interface JobHistoryItemCardProps {
   job: JobHistoryItem;
 }
 
-export function JobHistoryItemCard({ job }: JobHistoryItemProps) {
+export function JobHistoryItemCard({ job }: JobHistoryItemCardProps) {
   const statusConfig = {
-    waiting: { bg: 'bg-gray-100', text: 'text-gray-700', label: '대기' },
-    active: { bg: 'bg-blue-100', text: 'text-blue-700', label: '진행중' },
-    completed: { bg: 'bg-green-100', text: 'text-green-700', label: '완료' },
-    failed: { bg: 'bg-red-100', text: 'text-red-700', label: '실패' },
-    delayed: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: '지연' },
+    waiting: { bg: "bg-gray-100", text: "text-gray-700", label: "대기" },
+    active: { bg: "bg-blue-100", text: "text-blue-700", label: "진행중" },
+    completed: { bg: "bg-green-100", text: "text-green-700", label: "완료" },
+    failed: { bg: "bg-red-100", text: "text-red-700", label: "실패" },
+    delayed: { bg: "bg-yellow-100", text: "text-yellow-700", label: "지연" },
   };
 
   const status = statusConfig[job.status];
@@ -19,8 +19,8 @@ export function JobHistoryItemCard({ job }: JobHistoryItemProps) {
     const date = new Date(dateString);
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${month}월 ${day}일 ${hours}:${minutes}`;
   };
 
@@ -33,7 +33,8 @@ export function JobHistoryItemCard({ job }: JobHistoryItemProps) {
             {job.deprCd} → {job.arvlCd}
           </div>
           <div className="text-sm text-gray-700 mb-2">
-            <span className="font-medium">예약 희망:</span> {job.targetMonth} {job.targetDate}일 ({job.targetTimes.join(', ')})
+            <span className="font-medium">예약 희망:</span> {job.targetMonth}{" "}
+            {job.targetDate}일 ({job.targetTimes.join(", ")})
           </div>
 
           {/* 메타 정보 */}
@@ -51,16 +52,16 @@ export function JobHistoryItemCard({ job }: JobHistoryItemProps) {
         </div>
 
         {/* 상태 */}
-        <div className={`px-3 py-1.5 rounded-lg ${status.bg} ${status.text} font-medium text-sm whitespace-nowrap`}>
+        <div
+          className={`px-3 py-1.5 rounded-lg ${status.bg} ${status.text} font-medium text-sm whitespace-nowrap`}
+        >
           {status.label}
         </div>
       </div>
 
       {/* 에러 메시지 (실패시에만) */}
-      {job.status === 'failed' && job.error && (
-        <div className="mt-2 text-xs text-red-600 truncate">
-          {job.error}
-        </div>
+      {job.status === "failed" && job.error && (
+        <div className="mt-2 text-xs text-red-600 truncate">{job.error}</div>
       )}
     </div>
   );

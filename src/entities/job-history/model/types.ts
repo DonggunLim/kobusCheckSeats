@@ -19,10 +19,11 @@ export interface JobHistoryItem {
   completedAt?: string;
 }
 
-export interface JobHistoryStats {
-  total: number;
-  waiting: number;
-  active: number;
-  completed: number;
-  failed: number;
+/**
+ * API Response types
+ */
+export interface FetchJobHistoryResponse {
+  success: boolean;
+  jobs: any[];
+  count: number;
 }

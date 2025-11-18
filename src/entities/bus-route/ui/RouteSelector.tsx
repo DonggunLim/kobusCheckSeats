@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Area, TerminalData } from "../model/types";
-import { fetchAreas, fetchTerminals, fetchDestinations } from "../api/route-api";
+import { fetchAreas, fetchTerminals, fetchDestinations } from "../api";
 
 interface RouteSelectorProps {
   departureAreaCd: string;
@@ -22,7 +22,9 @@ export function RouteSelector({
   onArrivalTerminalChange,
 }: RouteSelectorProps) {
   const [areas, setAreas] = useState<Area[]>([]);
-  const [departureTerminals, setDepartureTerminals] = useState<TerminalData[]>([]);
+  const [departureTerminals, setDepartureTerminals] = useState<TerminalData[]>(
+    []
+  );
   const [arrivalTerminals, setArrivalTerminals] = useState<TerminalData[]>([]);
   const [loading, setLoading] = useState({
     areas: false,
@@ -30,7 +32,7 @@ export function RouteSelector({
     arrivalTerminals: false,
   });
 
-  // Load areas on mount
+  // 지역 정보 가져오기
   useEffect(() => {
     async function loadAreas() {
       setLoading((prev) => ({ ...prev, areas: true }));
@@ -46,7 +48,7 @@ export function RouteSelector({
     loadAreas();
   }, []);
 
-  // Load departure terminals when area changes
+  // 출발 터미널 정보 가져오기
   useEffect(() => {
     if (!departureAreaCd) {
       setDepartureTerminals([]);
@@ -67,7 +69,7 @@ export function RouteSelector({
     loadDepartureTerminals();
   }, [departureAreaCd]);
 
-  // Load arrival terminals when departure terminal changes
+  // 출발 터미널에 맞는 도착 터미널 정보 가져오기
   useEffect(() => {
     if (!departureTerminalCd) {
       setArrivalTerminals([]);
@@ -90,15 +92,15 @@ export function RouteSelector({
 
   const handleAreaChange = (areaCd: string) => {
     onDepartureAreaChange(areaCd);
-    // Reset downstream selections
     onDepartureTerminalChange("", "");
     onArrivalTerminalChange("", "");
   };
 
   const handleDepartureTerminalChange = (terminalCd: string) => {
-    const terminal = departureTerminals.find((t) => t.terminalCd === terminalCd);
+    const terminal = departureTerminals.find(
+      (t) => t.terminalCd === terminalCd
+    );
     onDepartureTerminalChange(terminalCd, terminal?.terminalNm || "");
-    // Reset arrival selection
     onArrivalTerminalChange("", "");
   };
 
@@ -109,7 +111,7 @@ export function RouteSelector({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {/* Step 1: Area Selection */}
+      {/* 지역 선택 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           1️⃣ 출발 지역
@@ -130,7 +132,7 @@ export function RouteSelector({
         </select>
       </div>
 
-      {/* Step 2: Departure Terminal Selection */}
+      {/* 출발 터미널 선택 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           2️⃣ 출발 터미널
@@ -155,14 +157,16 @@ export function RouteSelector({
             </option>
           ))}
         </select>
-        {departureAreaCd && departureTerminals.length === 0 && !loading.departureTerminals && (
-          <p className="mt-1 text-xs text-gray-500">
-            이 지역에는 출발 가능한 터미널이 없습니다
-          </p>
-        )}
+        {departureAreaCd &&
+          departureTerminals.length === 0 &&
+          !loading.departureTerminals && (
+            <p className="mt-1 text-xs text-gray-500">
+              이 지역에는 출발 가능한 터미널이 없습니다
+            </p>
+          )}
       </div>
 
-      {/* Step 3: Arrival Terminal Selection */}
+      {/* 도착 터미널 선택 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           3️⃣ 도착 터미널
@@ -187,11 +191,13 @@ export function RouteSelector({
             </option>
           ))}
         </select>
-        {departureTerminalCd && arrivalTerminals.length === 0 && !loading.arrivalTerminals && (
-          <p className="mt-1 text-xs text-gray-500">
-            이 출발지에서 갈 수 있는 목적지가 없습니다
-          </p>
-        )}
+        {departureTerminalCd &&
+          arrivalTerminals.length === 0 &&
+          !loading.arrivalTerminals && (
+            <p className="mt-1 text-xs text-gray-500">
+              이 출발지에서 갈 수 있는 목적지가 없습니다
+            </p>
+          )}
       </div>
     </div>
   );
