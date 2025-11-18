@@ -14,13 +14,6 @@ interface RouteSelectorProps {
   onRouteChange: (route: RouteChangeData) => void;
 }
 
-// 공통 스타일
-const SELECT_BASE_CLASS =
-  "w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
-const SELECT_DISABLED_CLASS = "disabled:bg-gray-100 disabled:cursor-not-allowed";
-const LABEL_CLASS = "block text-sm font-medium text-gray-700 mb-2";
-const EMPTY_MESSAGE_CLASS = "mt-1 text-xs text-gray-500";
-
 export function RouteSelector({ onRouteChange }: RouteSelectorProps) {
   const [departureAreaCd, setDepartureAreaCd] = useState("");
   const [departureTerminalCd, setDepartureTerminalCd] = useState("");
@@ -64,11 +57,13 @@ export function RouteSelector({ onRouteChange }: RouteSelectorProps) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* 지역 선택 */}
       <div>
-        <label className={LABEL_CLASS}>1️⃣ 출발 지역</label>
+        <label className="mb-2 block text-sm font-medium text-text-primary">
+          출발 지역
+        </label>
         <select
           value={departureAreaCd}
           onChange={(e) => handleAreaChange(e.target.value)}
-          className={SELECT_BASE_CLASS}
+          className="w-full rounded-lg border border-beige-light  px-3 py-2.5 text-text-primary transition-all focus:outline-none focus:ring-2 focus:ring-green-primary"
           disabled={loading.areas}
           required
         >
@@ -83,11 +78,13 @@ export function RouteSelector({ onRouteChange }: RouteSelectorProps) {
 
       {/* 출발 터미널 선택 */}
       <div>
-        <label className={LABEL_CLASS}>2️⃣ 출발 터미널</label>
+        <label className="mb-2 block text-sm font-medium text-text-primary">
+          출발 터미널
+        </label>
         <select
           value={departureTerminalCd}
           onChange={(e) => handleDepartureTerminalChange(e.target.value)}
-          className={`${SELECT_BASE_CLASS} ${SELECT_DISABLED_CLASS}`}
+          className="w-full rounded-lg border border-beige-light  px-3 py-2.5 text-text-primary transition-all focus:outline-none focus:ring-2 focus:ring-green-primary"
           disabled={!departureAreaCd || loading.departureTerminals}
           required
         >
@@ -107,7 +104,7 @@ export function RouteSelector({ onRouteChange }: RouteSelectorProps) {
         {departureAreaCd &&
           departureTerminals.length === 0 &&
           !loading.departureTerminals && (
-            <p className={EMPTY_MESSAGE_CLASS}>
+            <p className="mt-1 text-xs text-text-secondary">
               이 지역에는 출발 가능한 터미널이 없습니다
             </p>
           )}
@@ -115,11 +112,13 @@ export function RouteSelector({ onRouteChange }: RouteSelectorProps) {
 
       {/* 도착 터미널 선택 */}
       <div>
-        <label className={LABEL_CLASS}>3️⃣ 도착 터미널</label>
+        <label className="mb-2 block text-sm font-medium text-text-primary">
+          도착 터미널
+        </label>
         <select
           value={arrivalTerminalCd}
           onChange={(e) => handleArrivalTerminalChange(e.target.value)}
-          className={`${SELECT_BASE_CLASS} ${SELECT_DISABLED_CLASS}`}
+          className="w-full rounded-lg border border-beige-light  px-3 py-2.5 text-text-primary transition-all focus:outline-none focus:ring-2 focus:ring-green-primary"
           disabled={!departureTerminalCd || loading.arrivalTerminals}
           required
         >
@@ -139,7 +138,7 @@ export function RouteSelector({ onRouteChange }: RouteSelectorProps) {
         {departureTerminalCd &&
           arrivalTerminals.length === 0 &&
           !loading.arrivalTerminals && (
-            <p className={EMPTY_MESSAGE_CLASS}>
+            <p className="mt-1 text-xs text-text-secondary">
               이 출발지에서 갈 수 있는 목적지가 없습니다
             </p>
           )}

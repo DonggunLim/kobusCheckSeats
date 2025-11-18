@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-cream-bg: #f5efe7;
+  --color-beige-light: #e8dcc8;
+  --color-green-primary: #5a6e6a;
+  --color-green-dark: #4a5f5b;
+  --color-orange-accent: #e67e50;
+  --color-red-accent: #a53f3f;
+  --color-text-primary: #3a4442;
+  --color-text-secondary: #6b7280;
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 249, 250, 251;
