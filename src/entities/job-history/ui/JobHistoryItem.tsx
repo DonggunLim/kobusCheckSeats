@@ -30,7 +30,7 @@ export function JobHistoryItemCard({ job }: JobHistoryItemCardProps) {
         {/* 노선 정보 */}
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-lg text-gray-900 mb-1">
-            {job.deprCd} → {job.arvlCd}
+            {job.departure} → {job.arrival}
           </div>
           <div className="text-sm text-gray-700 mb-2">
             <span className="font-medium">예약 희망:</span> {job.targetMonth}{" "}

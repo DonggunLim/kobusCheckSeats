@@ -8,19 +8,19 @@ export async function POST(request: NextRequest) {
 
     // 요청 데이터 검증
     const {
-      departure,
-      arrival,
+      departureCd,
+      arrivalCd,
       targetMonth,
       targetDate,
       targetTimes,
       scheduleId,
     } = body;
 
-    if (!departure || !arrival || !targetMonth || !targetDate || !targetTimes) {
+    if (!departureCd || !arrivalCd || !targetMonth || !targetDate || !targetTimes) {
       return NextResponse.json(
         {
           error:
-            "Missing required fields: departure, arrival, targetMonth, targetDate, targetTimes",
+            "Missing required fields: departureCd, arrivalCd, targetMonth, targetDate, targetTimes",
         },
         { status: 400 }
       );
@@ -56,12 +56,10 @@ export async function POST(request: NextRequest) {
     const retryInterval = 3 * 60 * 1000; // 3분
     const maxAttempts = Math.max(1, Math.ceil(remainingTime / retryInterval));
 
-    console.log(`[Job Creation] 목표 시간까지 ${Math.floor(remainingTime / 1000 / 60)}분 남음, 최대 ${maxAttempts}회 시도 가능`);
-
     // 큐에 Job 추가
     const jobData: CheckSeatsJobData = {
-      departure,
-      arrival,
+      departureCd,
+      arrivalCd,
       targetMonth,
       targetDate,
       targetTimes,
@@ -70,17 +68,34 @@ export async function POST(request: NextRequest) {
 
     const queue = getCheckSeatsQueue();
     const job = await queue.add("check-seats-job", jobData, {
-      // Job별 옵션
       priority: body.priority || 1,
       delay: body.delay || 0,
       removeOnComplete: true,
       removeOnFail: false,
-      attempts: maxAttempts, // 목표 시간까지 계산된 attempts
+      attempts: maxAttempts,
       backoff: {
         type: "fixed",
         delay: retryInterval, // 3분 고정 대기
       },
     });
+
+    // 터미널 이름 조회 (코드 → 이름)
+    const terminals = await prisma.terminal.findMany({
+      where: {
+        terminalCd: { in: [departureCd, arrivalCd] },
+      },
+      select: {
+        terminalCd: true,
+        terminalNm: true,
+      },
+    });
+
+    const terminalMap = new Map(
+      terminals.map((t) => [t.terminalCd, t.terminalNm])
+    );
+
+    const departureName = terminalMap.get(departureCd) || departureCd;
+    const arrivalName = terminalMap.get(arrivalCd) || arrivalCd;
 
     // DB에 잡 히스토리 저장
     let createdJob;
@@ -88,8 +103,8 @@ export async function POST(request: NextRequest) {
       createdJob = await prisma.jobHistory.create({
         data: {
           jobId: job.id as string,
-          deprCd: departure,
-          arvlCd: arrival,
+          departure: departureName,
+          arrival: arrivalName,
           targetMonth,
           targetDate,
           targetTimes: JSON.stringify(targetTimes),
@@ -101,8 +116,8 @@ export async function POST(request: NextRequest) {
       console.log("[Job Created] Job saved to DB:", {
         id: createdJob.id,
         jobId: createdJob.jobId,
-        deprCd: createdJob.deprCd,
-        arvlCd: createdJob.arvlCd,
+        departure: createdJob.departure,
+        arrival: createdJob.arrival,
       });
     } catch (dbError) {
       console.error("Failed to save job history to DB:", dbError);

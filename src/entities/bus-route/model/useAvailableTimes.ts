@@ -1,49 +1,45 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import { fetchAvailableTimes } from "../api";
 
-interface UseAvailableTimesParams {
-  departure: string;
-  arrival: string;
-  enabled?: boolean;
-}
-
-export function useAvailableTimes({ departure, arrival, enabled = true }: UseAvailableTimesParams) {
-  const [times, setTimes] = useState<string[]>([]);
+export function useAvailableTimes(
+  departureTerminalCd: string,
+  arrivalTerminalCd: string
+) {
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!enabled || !departure || !arrival) {
-      setTimes([]);
+    if (!departureTerminalCd || !arrivalTerminalCd) {
+      setAvailableTimes([]);
       return;
     }
 
-    async function fetchTimes() {
+    async function loadAvailableTimes() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(
-          `/api/schedules/times?departure=${departure}&arrival=${arrival}`
+        const times = await fetchAvailableTimes(
+          departureTerminalCd,
+          arrivalTerminalCd
         );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch available times');
-        }
-
-        const data = await response.json();
-        setTimes(data.times || []);
+        setAvailableTimes(times);
       } catch (err) {
-        console.error('Error fetching available times:', err);
-        setError(err instanceof Error ? err.message : '시간대 조회 실패');
-        setTimes([]);
+        console.error("Failed to load available times:", err);
+        setError(err instanceof Error ? err.message : "시간대 조회 실패");
+        setAvailableTimes([]);
       } finally {
         setLoading(false);
       }
     }
+    loadAvailableTimes();
+  }, [departureTerminalCd, arrivalTerminalCd]);
 
-    fetchTimes();
-  }, [departure, arrival, enabled]);
-
-  return { times, loading, error };
+  return {
+    availableTimes,
+    loading,
+    error,
+  };
 }

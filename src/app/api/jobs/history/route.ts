@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/shared/lib/prisma";
-import type { Prisma } from "@prisma/client";
 
 /**
  * GET /api/jobs/history
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
-    // JSON 파싱하여 반환
+    // JSON 파싱 (터미널 이름은 이미 저장되어 있음)
     const parsedJobs = jobs.map((job) => ({
       ...job,
       targetTimes: JSON.parse(job.targetTimes),
@@ -34,6 +33,7 @@ export async function GET(request: NextRequest) {
       count: parsedJobs.length,
     });
   } catch (error) {
+    console.error("Failed to fetch job history:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch job history" },
       { status: 500 }

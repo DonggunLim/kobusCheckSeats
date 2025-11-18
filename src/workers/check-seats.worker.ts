@@ -14,7 +14,7 @@ const worker = new Worker<CheckSeatsJobData>(
       job.data
     );
 
-    const { departure, arrival, targetMonth, targetDate, targetTimes } =
+    const { departureCd, arrivalCd, targetMonth, targetDate, targetTimes } =
       job.data;
 
     // 목표 날짜/시간이 지났는지 체크
@@ -37,8 +37,8 @@ const worker = new Worker<CheckSeatsJobData>(
     try {
       // 실제 좌석 확인 로직 실행
       const result = await checkBusSeats({
-        departure,
-        arrival,
+        departureCd,
+        arrivalCd,
         targetMonth,
         targetDate,
         targetTimes,

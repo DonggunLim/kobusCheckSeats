@@ -84,8 +84,8 @@ model BusSchedules {
 model JobHistory {
   id            Int      @id @default(autoincrement())
   jobId         String   @unique @map("job_id") @db.VarChar(50) // BullMQ job ID
-  deprCd        String   @map("depr_cd") @db.VarChar(10)
-  arvlCd        String   @map("arvl_cd") @db.VarChar(10)
+  departure     String   @db.VarChar(50) // 출발 터미널 이름
+  arrival       String   @db.VarChar(50) // 도착 터미널 이름
   targetMonth   String   @map("target_month") @db.VarChar(7) // YYYY-MM
   targetDate    String   @map("target_date") @db.VarChar(10) // YYYY-MM-DD
   targetTimes   String   @map("target_times") @db.Text // JSON array of times

@@ -14,7 +14,7 @@ import type {
  * (기존 Playwright 방식을 경량화된 HTTP 요청 방식으로 대체)
  */
 export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
-  const { departure, arrival, targetMonth, targetDate, targetTimes } = config;
+  const { departureCd, arrivalCd, targetMonth, targetDate, targetTimes } = config;
   const startTime = Date.now();
 
   // axios + cookie jar 설정
@@ -39,23 +39,15 @@ export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
     // 2. 날짜 포맷팅 (KST 기준)
     const { ymd, formatted } = getTargetDateKST(targetMonth, targetDate);
 
-    // 3. 터미널 코드 매핑 (departure/arrival 이름 → 코드)
-    const terminalMap = await getTerminalCodeMap();
-    const deprCd = terminalMap[departure];
-    const arvlCd = terminalMap[arrival];
-
-    if (!deprCd || !arvlCd) {
-      throw new Error(
-        `터미널 코드를 찾을 수 없습니다: ${departure} / ${arrival}`
-      );
-    }
+    // 3. 터미널 이름 조회 (코드 → 이름)
+    const terminalNames = await getTerminalNames(departureCd, arrivalCd);
 
     // 4. alcnSrch.do에 POST 요청
     const pageParams = new URLSearchParams();
-    pageParams.append("deprCd", deprCd);
-    pageParams.append("deprNm", departure);
-    pageParams.append("arvlCd", arvlCd);
-    pageParams.append("arvlNm", arrival);
+    pageParams.append("deprCd", departureCd);
+    pageParams.append("deprNm", terminalNames.departureName);
+    pageParams.append("arvlCd", arrivalCd);
+    pageParams.append("arvlNm", terminalNames.arrivalName);
     pageParams.append("pathDvs", "sngl");
     pageParams.append("pathStep", "1");
     pageParams.append("crchDeprArvlYn", "N");
@@ -156,7 +148,7 @@ export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
     const durationMs = endTime - startTime;
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error(
-      `[Worker] ✗ 조회 실패 | ${departure} → ${arrival} | ${errorMsg}`
+      `[Worker] ✗ 조회 실패 | ${departureCd} → ${arrivalCd} | ${errorMsg}`
     );
 
     return {
@@ -211,54 +203,37 @@ function getTargetDateKST(
   return { ymd, formatted };
 }
 
-// 터미널 코드 캐시 (메모리 캐시)
-let terminalCodeCache: Record<string, string> | null = null;
-
 /**
- * 기본 터미널 코드 매핑 (DB 연결 실패 시 fallback)
+ * 터미널 코드 → 이름 조회 (DB에서 가져오기)
  */
-function getDefaultTerminalMap(): Record<string, string> {
-  return {
-    서울경부: "010",
-    동서울: "060",
-    부산: "100",
-    대전복합: "301",
-    광주: "400",
-    강릉: "320",
-    상주: "825",
-  };
-}
-
-/**
- * 터미널 이름 → 코드 매핑 (DB에서 동적으로 가져오기)
- */
-async function getTerminalCodeMap(): Promise<Record<string, string>> {
-  // 캐시가 있으면 반환
-  if (terminalCodeCache) {
-    return terminalCodeCache;
-  }
-
+async function getTerminalNames(
+  departureCd: string,
+  arrivalCd: string
+): Promise<{ departureName: string; arrivalName: string }> {
   try {
-    // DB에서 모든 터미널 정보 가져오기
+    // DB에서 터미널 이름 조회
     const terminals = await prisma.terminal.findMany({
+      where: {
+        terminalCd: { in: [departureCd, arrivalCd] },
+      },
       select: {
         terminalCd: true,
         terminalNm: true,
       },
     });
 
-    // 터미널 이름 → 코드 매핑 생성
-    terminalCodeCache = terminals.reduce((map, terminal) => {
-      map[terminal.terminalNm] = terminal.terminalCd;
-      return map;
-    }, {} as Record<string, string>);
+    const terminalMap = new Map(
+      terminals.map((t) => [t.terminalCd, t.terminalNm])
+    );
 
-    return terminalCodeCache;
+    const departureName = terminalMap.get(departureCd) || departureCd;
+    const arrivalName = terminalMap.get(arrivalCd) || arrivalCd;
+
+    return { departureName, arrivalName };
   } catch (error) {
-    // DB 연결 실패 시 기본 매핑 사용
+    // DB 연결 실패 시 코드를 그대로 사용
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.warn(`[Worker] DB 연결 실패, 기본 터미널 매핑 사용: ${errorMsg}`);
-    terminalCodeCache = getDefaultTerminalMap();
-    return terminalCodeCache;
+    console.warn(`[Worker] DB 연결 실패, 터미널 코드를 이름으로 사용: ${errorMsg}`);
+    return { departureName: departureCd, arrivalName: arrivalCd };
   }
 }

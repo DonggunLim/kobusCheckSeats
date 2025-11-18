@@ -7,8 +7,8 @@ import type { JobHistory, Terminal } from '@prisma/client';
 
 // 노선 조회 설정 (JobHistory 모델 기반)
 export interface RouteQuery {
-  departure: string; // 출발지 터미널 이름
-  arrival: string; // 도착지 터미널 이름
+  departureCd: string; // 출발지 터미널 코드 (예: "NAEK010")
+  arrivalCd: string; // 도착지 터미널 코드 (예: "NAEK020")
   targetMonth: string; // 목표 월 (예: "11월")
   targetDate: string; // 목표 일자 (예: "15")
   targetTimes: string[]; // 확인할 시간대 목록 (예: ["08:00", "09:30"])

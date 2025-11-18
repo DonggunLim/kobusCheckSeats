@@ -34,3 +34,20 @@ export async function fetchDestinations(
   }
   return response.json();
 }
+
+/**
+ * Fetch available times for a route
+ */
+export async function fetchAvailableTimes(
+  departure: string,
+  arrival: string
+): Promise<string[]> {
+  const response = await fetch(
+    `/api/schedules/times?departure=${departure}&arrival=${arrival}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch available times");
+  }
+  const data = await response.json();
+  return data.times || [];
+}

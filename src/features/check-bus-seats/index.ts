@@ -1,1 +1,1 @@
-export { CheckBusSeats } from "./ui/CheckBusSeats";
+export { CheckButton } from "./ui/CheckButton";

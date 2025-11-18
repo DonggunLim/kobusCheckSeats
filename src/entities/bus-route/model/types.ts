@@ -14,3 +14,10 @@ export interface TerminalData {
   terminalNm: string;
   areaCd: string | null;
 }
+
+/**
+ * 사용 가능한 시간 조회 API 응답
+ */
+export interface FetchAvailableTimesResponse {
+  times: string[];
+}

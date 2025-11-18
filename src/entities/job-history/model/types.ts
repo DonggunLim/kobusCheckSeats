@@ -1,29 +1,22 @@
-/**
- * Job History entity types
- */
-
 export interface JobHistoryItem {
   id: number;
   jobId: string;
-  deprCd: string;
-  arvlCd: string;
+  departure: string;  // 출발 터미널 이름
+  arrival: string;    // 도착 터미널 이름
   targetMonth: string;
   targetDate: string;
   targetTimes: string[];
-  status: 'waiting' | 'active' | 'completed' | 'failed' | 'delayed';
+  status: "waiting" | "active" | "completed" | "failed" | "delayed";
   retryCount: number;
-  result?: any;
-  error?: string;
+  result: any | null;
+  error: string | null;
   createdAt: string;
   updatedAt: string;
-  completedAt?: string;
+  completedAt: string | null;
 }
 
-/**
- * API Response types
- */
 export interface FetchJobHistoryResponse {
   success: boolean;
-  jobs: any[];
+  jobs: JobHistoryItem[];
   count: number;
 }

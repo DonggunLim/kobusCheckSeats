@@ -26,11 +26,11 @@ export function useJobHistory(limit: number = 20) {
     fetchJobs();
   }, [fetchJobs]);
 
-  // 폴링으로 주기적 업데이트 (3분)
+  // 폴링으로 주기적 업데이트 (10초로 단축)
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchJobs();
-    }, 1000 * 60 * 3);
+    }, 10000); // 10초
 
     return () => {
       clearInterval(intervalId);
