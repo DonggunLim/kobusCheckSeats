@@ -22,6 +22,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Prisma Client 생성 (TypeScript 타입 생성)
+RUN npx prisma generate
+
 # Next.js 빌드
 RUN npm run build
 
