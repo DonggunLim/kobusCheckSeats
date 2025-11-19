@@ -55,6 +55,7 @@ services:
       - .env.local
     environment:
       - NODE_ENV=development
+      - TZ=Asia/Seoul
     depends_on:
       kobus-mysql:
         condition: service_healthy
@@ -76,6 +77,7 @@ services:
       - .env.local
     environment:
       - NODE_ENV=development
+      - TZ=Asia/Seoul
     depends_on:
       kobus-mysql:
         condition: service_healthy

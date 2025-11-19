@@ -8,6 +8,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Seoul
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_HOST=${REDIS_HOST:-redis-queue}
       - REDIS_PORT=${REDIS_PORT:-6379}
@@ -25,6 +26,7 @@ services:
     command: ["./entrypoint.worker.sh"]
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Seoul
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_HOST=${REDIS_HOST:-redis-queue}
       - REDIS_PORT=${REDIS_PORT:-6379}

@@ -112,7 +112,6 @@ async function updateJobStatus(
     // Prisma 타입을 활용한 업데이트 데이터 구성
     const updateData: Prisma.JobHistoryUpdateInput = {
       status,
-      updatedAt: new Date(),
     };
 
     if (retryCount !== undefined) {
@@ -145,7 +144,6 @@ worker.on("completed", async (job: Job) => {
   console.log(
     `[Worker] ✓ Job ${job.id} 최종 완료 (총 ${job.attemptsMade}회 시도)`
   );
-  // DB 업데이트는 worker 함수 내부에서 이미 처리됨
 });
 
 worker.on("failed", async (job: Job | undefined, err: Error) => {
