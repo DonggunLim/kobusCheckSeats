@@ -53,6 +53,8 @@ jobs:
           tags: ${{ env.APP_IMAGE_NAME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+        build-args: |
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
 
       # Worker 이미지 빌드 및 푸시 (target: prod-worker)
       - name: Build and push Worker image
