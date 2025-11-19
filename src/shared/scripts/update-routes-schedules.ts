@@ -55,7 +55,7 @@ function getTargetKST(daysOffset: number): { ymd: string; formatted: string } {
 /**
  * 모든 활성 노선의 시간표 크롤링
  */
-async function crawlAllActiveRoutes() {
+export async function getRoutesSchedules() {
   console.log("[CRAWL] 시간표 크롤링 시작");
 
   try {
@@ -159,11 +159,7 @@ async function crawlAllActiveRoutes() {
             : null;
 
           // 회사명 추출
-          const company = $link
-            .find("span.bus_com span")
-            .first()
-            .text()
-            .trim();
+          const company = $link.find("span.bus_com span").first().text().trim();
 
           scheduleList.push({
             deprCd: route.deprCd,
@@ -183,6 +179,7 @@ async function crawlAllActiveRoutes() {
             }),
             prisma.busSchedules.createMany({
               data: scheduleList,
+              skipDuplicates: true,
             }),
           ]);
 
@@ -213,6 +210,3 @@ async function crawlAllActiveRoutes() {
     await prisma.$disconnect();
   }
 }
-
-// 스크립트 실행
-crawlAllActiveRoutes();

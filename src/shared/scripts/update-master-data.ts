@@ -78,7 +78,7 @@ function collectTerminals(data: any): Map<string, any> {
 /**
  * 메인 업데이트 함수
  */
-async function updateMasterData() {
+export async function getMasterData() {
   console.log("[SYNC] 마스터 데이터 동기화 시작");
 
   try {
@@ -172,6 +172,3 @@ async function updateMasterData() {
     await prisma.$disconnect();
   }
 }
-
-// 스크립트 실행
-updateMasterData();
