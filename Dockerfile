@@ -73,6 +73,7 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY src/workers ./src/workers
 COPY src/shared ./src/shared
 COPY package.json ./
+COPY tsconfig.json ./
 COPY --from=builder /app/prisma ./prisma
 
 # Entrypoint 스크립트 복사 및 실행 권한 부여
