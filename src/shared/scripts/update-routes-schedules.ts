@@ -8,6 +8,7 @@ import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
 import * as cheerio from "cheerio";
 import { KOBUS } from "../constants/kobus";
+import { getTargetKST } from "../lib/date";
 
 const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.local";
 config({ path: envFile });
@@ -23,34 +24,6 @@ interface ScheduleData {
   busCompany: string | null;
   isViaRoute: boolean;
   viaLocation: string | null;
-}
-
-/**
- * KST 기준으로 오늘+N일 날짜 반환
- */
-function getTargetKST(daysOffset: number): { ymd: string; formatted: string } {
-  const date = new Date();
-  date.setDate(date.getDate() + daysOffset);
-
-  const ymd = new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(date)
-    .replace(/\. /g, "")
-    .replace(".", "");
-
-  const formatted = new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    weekday: "short",
-  }).format(date);
-
-  return { ymd, formatted };
 }
 
 /**
@@ -88,7 +61,6 @@ export async function getRoutesSchedules() {
       const routeName = `${route.departureTerminal.terminalNm} → ${route.arrivalTerminal.terminalNm}`;
 
       try {
-        // alcnSrch.do에 POST하여 HTML 응답 받기
         const pageParams = new URLSearchParams();
         pageParams.append("deprCd", route.deprCd);
         pageParams.append("deprNm", route.departureTerminal.terminalNm);
@@ -131,9 +103,8 @@ export async function getRoutesSchedules() {
         scheduleLinks.each((_idx: number, el: cheerio.Element) => {
           const $link = $(el);
 
-          // 시간 추출
           const timeText = $link.find(KOBUS.SELECTORS.START_TIME).text().trim();
-          const time = timeText.replace(/\s+/g, ""); // "06 : 00" → "06:00"
+          const time = timeText.replace(/\s+/g, "");
 
           // 등급 추출
           const gradeText = $link
@@ -146,7 +117,10 @@ export async function getRoutesSchedules() {
             .trim();
 
           // 경유지 추출
-          const viaText = $link.find(KOBUS.SELECTORS.VIA_LOCATION).text().trim();
+          const viaText = $link
+            .find(KOBUS.SELECTORS.VIA_LOCATION)
+            .text()
+            .trim();
           const viaLocation = viaText
             ? viaText.replace(/[()]/g, "").trim()
             : null;

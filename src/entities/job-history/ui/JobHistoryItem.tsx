@@ -46,15 +46,6 @@ export function JobHistoryItemCard({
 
   const canCancel = job.status === "waiting" || job.status === "active";
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${month}월 ${day}일 ${hours}:${minutes}`;
-  };
-
   const handleCancel = async () => {
     if (!confirm("정말 이 작업을 취소하시겠습니까?")) {
       return;
@@ -92,7 +83,7 @@ export function JobHistoryItemCard({
 
           {/* 메타 정보 */}
           <div className="flex items-center gap-3 text-xs">
-            <span>등록: {formatDate(job.createdAt)}</span>
+            <span>등록: {job.createdAt.split("T")[0]}</span>
             {job.retryCount > 0 && (
               <>
                 <span>·</span>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCheckSeatsQueue, type CheckSeatsJobData } from "@/shared/lib/queue";
 import prisma from "@/shared/lib/prisma";
+import { getKSTNow } from "@/shared/lib/date";
 
 export async function POST(request: NextRequest) {
   try {
@@ -202,7 +203,7 @@ export async function DELETE(request: NextRequest) {
       where: { jobId },
       data: {
         status: "cancelled",
-        completedAt: new Date(),
+        completedAt: getKSTNow(),
       },
     });
 

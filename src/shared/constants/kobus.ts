@@ -54,7 +54,7 @@ export const KOBUS = {
   },
 } as const;
 
-// 지역 코드 매핑 (별도 데이터로 관리)
+// 지역 코드 매핑
 export const AREA_CODE_MAP: Record<string, string> = {
   "48": "경남",
   "47": "경북",

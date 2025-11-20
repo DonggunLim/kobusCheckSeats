@@ -9,6 +9,7 @@ import type {
   CheckResult,
 } from "../../shared/types/bus-check.types";
 import { KOBUS } from "@/shared/constants/kobus";
+import { getTargetDateKST } from "@/shared/lib/date";
 
 /**
  * axios + cheerio를 사용하여 코버스 사이트에서 버스 좌석을 확인합니다.
@@ -160,44 +161,6 @@ export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
       durationMs,
     };
   }
-}
-
-/**
- * KST 기준으로 날짜 포맷팅
- */
-function getTargetDateKST(
-  targetMonth: string,
-  targetDate: string
-): { ymd: string; formatted: string } {
-  // targetMonth: "11월", targetDate: "18"
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = parseInt(targetMonth.replace("월", ""));
-  const day = parseInt(targetDate);
-
-  const targetDateObj = new Date(year, month - 1, day);
-
-  // YYYYMMDD 형식
-  const ymd = new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(targetDateObj)
-    .replace(/\. /g, "")
-    .replace(".", "");
-
-  // "2025. 11. 18. (화)" 형식
-  const formatted = new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    weekday: "short",
-  }).format(targetDateObj);
-
-  return { ymd, formatted };
 }
 
 /**

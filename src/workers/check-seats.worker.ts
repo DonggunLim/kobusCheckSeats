@@ -4,6 +4,7 @@ import { type CheckSeatsJobData } from "../shared/lib/queue";
 import { checkBusSeats } from "./lib/check-bus-seats";
 import prisma from "../shared/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { getKSTNow } from "../shared/lib/date";
 
 // 워커 생성
 const worker = new Worker<CheckSeatsJobData>(
@@ -138,7 +139,7 @@ async function updateJobStatus(
     }
 
     if (status === "completed" || status === "failed") {
-      updateData.completedAt = new Date();
+      updateData.completedAt = getKSTNow();
     }
 
     await prisma.jobHistory.update({

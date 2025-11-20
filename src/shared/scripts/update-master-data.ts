@@ -66,8 +66,8 @@ export async function getMasterData() {
       new URLSearchParams(),
       {
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "KobusCheckSeats-MasterData-Updater (Personal Project)",
+          "Content-Type": KOBUS.HTTP.HEADERS.CONTENT_TYPE_FORM,
+          "User-Agent": KOBUS.HTTP.USER_AGENT,
         },
       }
     );
