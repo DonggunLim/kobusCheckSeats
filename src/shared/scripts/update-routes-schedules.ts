@@ -7,12 +7,13 @@ import prisma from "../lib/prisma";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
 import * as cheerio from "cheerio";
+import { KOBUS } from "../constants/kobus";
 
 const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.local";
 config({ path: envFile });
 
 const jar = new CookieJar();
-const client = wrapper(axios.create({ jar, timeout: 30000 }));
+const client = wrapper(axios.create({ jar, timeout: KOBUS.HTTP.TIMEOUT }));
 
 interface ScheduleData {
   deprCd: string;
@@ -59,12 +60,10 @@ export async function getRoutesSchedules() {
   console.log("[CRAWL] 시간표 크롤링 시작");
 
   try {
-    await client.get("https://www.kobus.co.kr/mrs/rotinf.do", {
+    await client.get(KOBUS.URLS.SESSION_COOKIE, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "User-Agent": KOBUS.HTTP.USER_AGENT,
+        Accept: KOBUS.HTTP.HEADERS.ACCEPT_HTML,
       },
     });
 
@@ -95,38 +94,32 @@ export async function getRoutesSchedules() {
         pageParams.append("deprNm", route.departureTerminal.terminalNm);
         pageParams.append("arvlCd", route.arvlCd);
         pageParams.append("arvlNm", route.arrivalTerminal.terminalNm);
-        pageParams.append("pathDvs", "sngl");
-        pageParams.append("pathStep", "1");
-        pageParams.append("crchDeprArvlYn", "N");
+        pageParams.append("pathDvs", KOBUS.FORM.PATH_DVS);
+        pageParams.append("pathStep", KOBUS.FORM.PATH_STEP);
+        pageParams.append("crchDeprArvlYn", KOBUS.FORM.CRCH_DEPR_ARVL_YN);
         pageParams.append("deprDtm", deprDt);
         pageParams.append("deprDtmAll", deprDtAll);
         pageParams.append("arvlDtm", deprDt);
         pageParams.append("arvlDtmAll", deprDtAll);
-        pageParams.append("busClsCd", "0");
-        pageParams.append("prmmDcYn", "N");
-        pageParams.append("tfrCd", "");
-        pageParams.append("tfrNm", "");
-        pageParams.append("tfrArvlFullNm", "");
-        pageParams.append("abnrData", "");
+        pageParams.append("busClsCd", KOBUS.FORM.BUS_CLS_CD);
+        pageParams.append("prmmDcYn", KOBUS.FORM.PRMM_DC_YN);
+        pageParams.append("tfrCd", KOBUS.FORM.TFR_CD);
+        pageParams.append("tfrNm", KOBUS.FORM.TFR_NM);
+        pageParams.append("tfrArvlFullNm", KOBUS.FORM.TFR_ARVL_FULL_NM);
+        pageParams.append("abnrData", KOBUS.FORM.ABNR_DATA);
 
-        const response = await client.post(
-          "https://www.kobus.co.kr/mrs/alcnSrch.do",
-          pageParams,
-          {
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-              Referer: "https://www.kobus.co.kr/mrs/rotinf.do",
-              Accept:
-                "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-            },
-          }
-        );
+        const response = await client.post(KOBUS.URLS.ROUTE_INFO, pageParams, {
+          headers: {
+            "Content-Type": KOBUS.HTTP.HEADERS.CONTENT_TYPE_FORM,
+            "User-Agent": KOBUS.HTTP.USER_AGENT,
+            Referer: KOBUS.URLS.SESSION_COOKIE,
+            Accept: KOBUS.HTTP.HEADERS.ACCEPT_HTML,
+          },
+        });
 
         // HTML 파싱
         const $ = cheerio.load(response.data);
-        const scheduleLinks = $('a[onclick*="fnSatsChc"]');
+        const scheduleLinks = $(KOBUS.SELECTORS.SCHEDULE_LINKS);
 
         if (scheduleLinks.length === 0) {
           failCount++;
@@ -139,12 +132,12 @@ export async function getRoutesSchedules() {
           const $link = $(el);
 
           // 시간 추출
-          const timeText = $link.find("span.start_time").text().trim();
+          const timeText = $link.find(KOBUS.SELECTORS.START_TIME).text().trim();
           const time = timeText.replace(/\s+/g, ""); // "06 : 00" → "06:00"
 
           // 등급 추출
           const gradeText = $link
-            .find("span.grade")
+            .find(KOBUS.SELECTORS.BUS_GRADE)
             .clone()
             .children()
             .remove()
@@ -153,13 +146,17 @@ export async function getRoutesSchedules() {
             .trim();
 
           // 경유지 추출
-          const viaText = $link.find("span.grade span.via").text().trim();
+          const viaText = $link.find(KOBUS.SELECTORS.VIA_LOCATION).text().trim();
           const viaLocation = viaText
             ? viaText.replace(/[()]/g, "").trim()
             : null;
 
           // 회사명 추출
-          const company = $link.find("span.bus_com span").first().text().trim();
+          const company = $link
+            .find(KOBUS.SELECTORS.BUS_COMPANY)
+            .first()
+            .text()
+            .trim();
 
           scheduleList.push({
             deprCd: route.deprCd,
@@ -195,9 +192,11 @@ export async function getRoutesSchedules() {
         failCount++;
       }
 
-      // API 서버 부하 방지 (0.5초 대기)
+      // API 서버 부하 방지
       if (i < routes.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) =>
+          setTimeout(resolve, KOBUS.HTTP.CRAWL_DELAY_MS)
+        );
       }
     }
 

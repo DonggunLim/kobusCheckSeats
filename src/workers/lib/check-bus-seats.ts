@@ -8,18 +8,19 @@ import type {
   RouteScheduleSlot,
   CheckResult,
 } from "../../shared/types/bus-check.types";
+import { KOBUS } from "@/shared/constants/kobus";
 
 /**
  * axios + cheerio를 사용하여 코버스 사이트에서 버스 좌석을 확인합니다.
- * (기존 Playwright 방식을 경량화된 HTTP 요청 방식으로 대체)
  */
 export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
-  const { departureCd, arrivalCd, targetMonth, targetDate, targetTimes } = config;
+  const { departureCd, arrivalCd, targetMonth, targetDate, targetTimes } =
+    config;
   const startTime = Date.now();
 
   // axios + cookie jar 설정
   const jar = new CookieJar();
-  const client = wrapper(axios.create({ jar, timeout: 30000 }));
+  const client = wrapper(axios.create({ jar, timeout: KOBUS.HTTP.TIMEOUT }));
 
   const results: RouteScheduleSlot[] = [];
   let foundSeats = false;
@@ -27,12 +28,10 @@ export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
 
   try {
     // 1. 세션 쿠키 획득
-    await client.get("https://www.kobus.co.kr/mrs/rotinf.do", {
+    await client.get(KOBUS.URLS.SESSION_COOKIE, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "User-Agent": KOBUS.HTTP.USER_AGENT,
+        Accept: KOBUS.HTTP.HEADERS.ACCEPT_HTML,
       },
     });
 
@@ -48,38 +47,32 @@ export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
     pageParams.append("deprNm", terminalNames.departureName);
     pageParams.append("arvlCd", arrivalCd);
     pageParams.append("arvlNm", terminalNames.arrivalName);
-    pageParams.append("pathDvs", "sngl");
-    pageParams.append("pathStep", "1");
-    pageParams.append("crchDeprArvlYn", "N");
+    pageParams.append("pathDvs", KOBUS.FORM.PATH_DVS);
+    pageParams.append("pathStep", KOBUS.FORM.PATH_STEP);
+    pageParams.append("crchDeprArvlYn", KOBUS.FORM.CRCH_DEPR_ARVL_YN);
     pageParams.append("deprDtm", ymd);
     pageParams.append("deprDtmAll", formatted);
     pageParams.append("arvlDtm", ymd);
     pageParams.append("arvlDtmAll", formatted);
-    pageParams.append("busClsCd", "0");
-    pageParams.append("prmmDcYn", "N");
-    pageParams.append("tfrCd", "");
-    pageParams.append("tfrNm", "");
-    pageParams.append("tfrArvlFullNm", "");
-    pageParams.append("abnrData", "");
+    pageParams.append("busClsCd", KOBUS.FORM.BUS_CLS_CD);
+    pageParams.append("prmmDcYn", KOBUS.FORM.PRMM_DC_YN);
+    pageParams.append("tfrCd", KOBUS.FORM.TFR_CD);
+    pageParams.append("tfrNm", KOBUS.FORM.TFR_NM);
+    pageParams.append("tfrArvlFullNm", KOBUS.FORM.TFR_ARVL_FULL_NM);
+    pageParams.append("abnrData", KOBUS.FORM.ABNR_DATA);
 
-    const response = await client.post(
-      "https://www.kobus.co.kr/mrs/alcnSrch.do",
-      pageParams,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-          Referer: "https://www.kobus.co.kr/mrs/rotinf.do",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        },
-      }
-    );
+    const response = await client.post(KOBUS.URLS.ROUTE_INFO, pageParams, {
+      headers: {
+        "Content-Type": KOBUS.HTTP.HEADERS.CONTENT_TYPE_FORM,
+        "User-Agent": KOBUS.HTTP.USER_AGENT,
+        Referer: KOBUS.URLS.SESSION_COOKIE,
+        Accept: KOBUS.HTTP.HEADERS.ACCEPT_HTML,
+      },
+    });
 
     // 5. HTML 파싱
     const $ = cheerio.load(response.data);
-    const busRows = $('div.bus_time p[role="row"]');
+    const busRows = $(KOBUS.SELECTORS.BUS_ROWS);
 
     // 6. 각 시간대별 좌석 정보 추출
     for (const time of targetTimes) {
@@ -89,18 +82,22 @@ export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
         const $row = $(row);
 
         // 시간 추출
-        const timeText = $row.find("span.start_time").text().trim();
+        const timeText = $row.find(KOBUS.SELECTORS.START_TIME).text().trim();
         const normalizedTime = timeText.replace(/\s+/g, ""); // "12 : 10" → "12:10"
 
         if (normalizedTime === time) {
           // 잔여 좌석 추출
-          const remainSeatsText = $row.find("span.remain").text().trim();
+          const remainSeatsText = $row
+            .find(KOBUS.SELECTORS.REMAIN_SEATS)
+            .text()
+            .trim();
 
           // 상태 추출
-          const statusText = $row.find("span.status").text().trim();
+          const statusText = $row.find(KOBUS.SELECTORS.STATUS).text().trim();
 
           const hasSeats =
-            !statusText.includes("매진") && !remainSeatsText.includes("0 석");
+            !statusText.includes(KOBUS.STATUS.SOLDOUT) &&
+            !remainSeatsText.includes(KOBUS.STATUS.SEATS_ZERO);
 
           if (hasSeats) {
             foundSeats = true;
@@ -123,8 +120,8 @@ export async function checkBusSeats(config: RouteQuery): Promise<CheckResult> {
       if (!found) {
         results.push({
           time,
-          remainSeats: "N/A",
-          status: "정보 없음",
+          remainSeats: KOBUS.STATUS.NOT_AVAILABLE,
+          status: KOBUS.STATUS.NO_INFO,
           hasSeats: false,
         });
       }
@@ -233,7 +230,9 @@ async function getTerminalNames(
   } catch (error) {
     // DB 연결 실패 시 코드를 그대로 사용
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.warn(`[Worker] DB 연결 실패, 터미널 코드를 이름으로 사용: ${errorMsg}`);
+    console.warn(
+      `[Worker] DB 연결 실패, 터미널 코드를 이름으로 사용: ${errorMsg}`
+    );
     return { departureName: departureCd, arrivalName: arrivalCd };
   }
 }

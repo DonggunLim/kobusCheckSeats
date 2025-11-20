@@ -1,33 +1,10 @@
 import axios from "axios";
 import { config } from "dotenv";
 import prisma from "../lib/prisma";
+import { AREA_CODE_MAP, KOBUS } from "../constants/kobus";
 
 const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.local";
 config({ path: envFile });
-const KOBUS_MASTER_DATA_URL = "https://www.kobus.co.kr/mrs/readRotLinInf.ajax";
-
-// ==========================================================
-// [변경됨] 제공해주신 실제 지역 코드와 이름으로
-// AREA_CODE_MAP을 업데이트합니다.
-// ==========================================================
-const AREA_CODE_MAP: Record<string, string> = {
-  "48": "경남",
-  "47": "경북",
-  "46": "전남",
-  "45": "전북",
-  "44": "충남",
-  "43": "충북",
-  "42": "강원",
-  "41": "경기",
-  "36": "세종",
-  "31": "울산",
-  "30": "대전",
-  "29": "광주",
-  "28": "인천",
-  "27": "대구",
-  "26": "부산",
-  "11": "서울",
-};
 
 /**
  * area_codes 테이블을 수동 매핑 정보로 Upsert하는 함수
@@ -85,7 +62,7 @@ export async function getMasterData() {
     await updateAreaCodes();
 
     const response = await axios.post(
-      KOBUS_MASTER_DATA_URL,
+      KOBUS.URLS.MASTER_DATA,
       new URLSearchParams(),
       {
         headers: {
