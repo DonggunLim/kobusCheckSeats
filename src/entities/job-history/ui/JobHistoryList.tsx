@@ -1,14 +1,10 @@
 "use client";
 
 import { JobHistoryItemCard } from "./JobHistoryItem";
-import { useJobHistory } from "../model/useJobHistory";
+import { useJobHistoryContext } from "../model/JobHistoryContext";
 
-interface JobHistoryListProps {
-  limit?: number;
-}
-
-export function JobHistoryList({ limit = 20 }: JobHistoryListProps) {
-  const { jobs, loading, error, refetch } = useJobHistory(limit);
+export function JobHistoryList() {
+  const { jobs, loading, error, refetch } = useJobHistoryContext();
 
   return (
     <ul className="rounded-xl">

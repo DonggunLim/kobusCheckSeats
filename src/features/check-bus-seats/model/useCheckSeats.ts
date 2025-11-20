@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
+import { useJobHistoryContext } from "@/entities/job-history";
 import { CheckBusSeatsFormData } from "./types";
 
 export function useCheckSeats() {
   const [isChecking, setIsChecking] = useState(false);
+  const { refetch } = useJobHistoryContext();
 
   const startSession = useCallback(async (formData: CheckBusSeatsFormData) => {
     // 검증: 최소 1개 이상의 시간대 선택 확인
@@ -27,6 +29,9 @@ export function useCheckSeats() {
       // BullMQ 큐에 Job 추가
       const { data } = await axios.post("/api/queue/job", apiPayload);
 
+      // Job 추가 성공 후 히스토리 즉시 갱신
+      refetch();
+
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Job 추가 실패";
@@ -36,7 +41,7 @@ export function useCheckSeats() {
     } finally {
       setIsChecking(false);
     }
-  }, []);
+  }, [refetch]);
 
   return {
     isChecking,

@@ -105,21 +105,22 @@ export function JobHistoryItemCard({
         </div>
 
         {/* 상태 및 취소 버튼 */}
-        <div className="flex items-center gap-2">
-          <div
-            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${status.bg} ${status.text}`}
+        <div className="flex flex-col items-end gap-8">
+          {/* 상태 뱃지 */}
+          <span
+            className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bg} ${status.text}`}
           >
             {status.label}
-          </div>
+          </span>
 
           {/* 취소 버튼 (waiting, active 상태일 때만 표시) */}
           {canCancel && (
             <button
               onClick={handleCancel}
               disabled={isCancelling}
-              className="px-3 py-2 text-sm font-medium text-red-accent border border-red-accent rounded-lg hover:bg-red-accent hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs text-red-accent hover:text-red-accent/80 underline disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
-              {isCancelling ? "취소 중..." : "취소"}
+              {isCancelling ? "취소 중..." : "취소하기"}
             </button>
           )}
         </div>
