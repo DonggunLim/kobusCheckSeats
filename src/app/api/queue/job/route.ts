@@ -117,6 +117,8 @@ export async function POST(request: NextRequest) {
           targetTimes: JSON.stringify(targetTimes),
           status: "waiting",
           retryCount: 0,
+          createdAt: getKSTNow(),
+          updatedAt: getKSTNow(),
         },
       });
 
@@ -203,6 +205,7 @@ export async function DELETE(request: NextRequest) {
       where: { jobId },
       data: {
         status: "cancelled",
+        updatedAt: getKSTNow(),
         completedAt: getKSTNow(),
       },
     });

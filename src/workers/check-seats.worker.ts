@@ -124,6 +124,7 @@ async function updateJobStatus(
     // Prisma 타입을 활용한 업데이트 데이터 구성
     const updateData: Prisma.JobHistoryUpdateInput = {
       status,
+      updatedAt: getKSTNow(),
     };
 
     if (retryCount !== undefined) {
