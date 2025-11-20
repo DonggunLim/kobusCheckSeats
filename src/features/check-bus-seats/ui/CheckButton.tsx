@@ -6,13 +6,19 @@ import { useCheckSeats } from "../model/useCheckSeats";
 interface CheckButtonProps {
   formData: CheckBusSeatsFormData;
   disabled?: boolean;
+  onSuccess?: () => void;
 }
 
-export function CheckButton({ formData, disabled }: CheckButtonProps) {
+export function CheckButton({
+  formData,
+  disabled,
+  onSuccess,
+}: CheckButtonProps) {
   const { isChecking, startSession } = useCheckSeats();
 
-  const handleClick = () => {
-    startSession(formData);
+  const handleClick = async () => {
+    await startSession(formData);
+    onSuccess?.();
   };
 
   return (

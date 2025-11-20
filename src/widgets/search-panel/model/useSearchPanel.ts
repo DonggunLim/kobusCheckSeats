@@ -5,6 +5,7 @@ import { getTodayDate } from "@/shared/lib/date";
 import { CheckBusSeatsFormData } from "@/features/check-bus-seats/model/types";
 
 export function useSearchPanel() {
+  const [resetKey, setResetKey] = useState(0);
   const [formData, setFormData] = useState<CheckBusSeatsFormData>({
     departureTerminalCd: "",
     departureTerminalNm: "",
@@ -44,10 +45,25 @@ export function useSearchPanel() {
     }));
   };
 
+  // 폼 리셋 핸들러
+  const resetForm = () => {
+    setFormData({
+      departureTerminalCd: "",
+      departureTerminalNm: "",
+      arrivalTerminalCd: "",
+      arrivalTerminalNm: "",
+      date: getTodayDate(),
+      selectedTimes: [],
+    });
+    setResetKey((prev) => prev + 1); // key 변경으로 RouteSelector 강제 리마운트
+  };
+
   return {
     formData,
+    resetKey,
     handleRouteChange,
     handleTimesChange,
     handleDateChange,
+    resetForm,
   };
 }

@@ -6,7 +6,7 @@ import { getTodayDate } from "@/shared/lib/date";
 import { useSearchPanel } from "../model/useSearchPanel";
 
 export function SearchPanel() {
-  const { formData, handleRouteChange, handleTimesChange, handleDateChange } =
+  const { formData, resetKey, handleRouteChange, handleTimesChange, handleDateChange, resetForm } =
     useSearchPanel();
 
   return (
@@ -16,7 +16,7 @@ export function SearchPanel() {
       </h2>
       <div className="space-y-5">
         {/* 노선 선택 */}
-        <RouteSelector onRouteChange={handleRouteChange} />
+        <RouteSelector key={resetKey} onRouteChange={handleRouteChange} />
 
         {/* 날짜 */}
         <div>
@@ -43,7 +43,7 @@ export function SearchPanel() {
         />
 
         {/* 조회 시작 버튼 */}
-        <CheckButton formData={formData} />
+        <CheckButton formData={formData} onSuccess={resetForm} />
       </div>
     </div>
   );
