@@ -17,6 +17,17 @@ const worker = new Worker<CheckSeatsJobData>(
     const { departureCd, arrivalCd, targetMonth, targetDate, targetTimes } =
       job.data;
 
+    // DB에서 취소 여부 먼저 체크
+    const jobHistory = await prisma.jobHistory.findUnique({
+      where: { jobId: job.id as string },
+      select: { status: true },
+    });
+
+    if (jobHistory?.status === "cancelled") {
+      console.log(`[Worker] Job ${job.id} 이미 취소됨 - 작업 중단`);
+      return { foundSeats: false, reason: "사용자가 작업을 취소함" };
+    }
+
     // 목표 날짜/시간이 지났는지 체크
     const shouldContinue = checkShouldContinue(
       targetMonth,

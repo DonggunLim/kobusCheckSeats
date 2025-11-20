@@ -16,7 +16,13 @@ export async function POST(request: NextRequest) {
       scheduleId,
     } = body;
 
-    if (!departureCd || !arrivalCd || !targetMonth || !targetDate || !targetTimes) {
+    if (
+      !departureCd ||
+      !arrivalCd ||
+      !targetMonth ||
+      !targetDate ||
+      !targetTimes
+    ) {
       return NextResponse.json(
         {
           error:
@@ -138,7 +144,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Job 상태 확인 API
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -178,5 +183,67 @@ export async function GET(request: NextRequest) {
       { error: "Failed to fetch job status" },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const jobId = searchParams.get("jobId");
+
+    if (!jobId) {
+      return NextResponse.json(
+        { error: "Missing jobId parameter" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.jobHistory.update({
+      where: { jobId },
+      data: {
+        status: "cancelled",
+        completedAt: new Date(),
+      },
+    });
+
+    await tryRemoveJobFromQueue(jobId);
+
+    return NextResponse.json({
+      success: true,
+      message: "Job cancelled successfully",
+      jobId,
+    });
+  } catch (error) {
+    console.error("Error cancelling job:", error);
+    return NextResponse.json(
+      { error: "Failed to cancel job" },
+      { status: 500 }
+    );
+  }
+}
+
+// Job 큐에서 제거 시도
+async function tryRemoveJobFromQueue(jobId: string) {
+  try {
+    const queue = getCheckSeatsQueue();
+    const job = await queue.getJob(jobId);
+
+    if (!job) {
+      console.log(`[Job Cancel] Job ${jobId} not found in queue`);
+      return false;
+    }
+
+    const state = await job.getState();
+
+    // active 상태가 아닌 경우에만 제거
+    if (state !== "active") {
+      await job.remove();
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.warn(`[Job Cancel] Could not remove job ${jobId}:`, error);
+    return false;
   }
 }

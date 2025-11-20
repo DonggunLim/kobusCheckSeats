@@ -1,39 +1,50 @@
+"use client";
+
+import { useState } from "react";
+import axios from "axios";
 import type { JobHistoryItem } from "../model/types";
 
 interface JobHistoryItemCardProps {
   job: JobHistoryItem;
+  onJobCancelled?: () => void;
 }
 
-export function JobHistoryItemCard({ job }: JobHistoryItemCardProps) {
-  const statusConfig = {
-    waiting: {
-      bg: "var(--beige-light)",
-      text: "var(--text-primary)",
-      label: "대기",
-    },
-    active: {
-      bg: "var(--green-primary)",
-      text: "white",
-      label: "진행중",
-    },
-    completed: {
-      bg: "var(--green-dark)",
-      text: "white",
-      label: "완료",
-    },
-    failed: {
-      bg: "var(--red-accent)",
-      text: "white",
-      label: "실패",
-    },
-    delayed: {
-      bg: "var(--orange-accent)",
-      text: "white",
-      label: "지연",
-    },
-  };
+const STATUS_CONFIG = {
+  waiting: {
+    bg: "bg-beige-light",
+    text: "text-text-primary",
+    label: "대기",
+  },
+  active: {
+    bg: "bg-green-primary",
+    text: "text-white",
+    label: "진행중",
+  },
+  completed: {
+    bg: "bg-green-dark",
+    text: "text-white",
+    label: "완료",
+  },
+  failed: {
+    bg: "bg-red-accent",
+    text: "text-white",
+    label: "실패",
+  },
+  cancelled: {
+    bg: "bg-orange-accent",
+    text: "text-white",
+    label: "취소",
+  },
+};
 
-  const status = statusConfig[job.status];
+export function JobHistoryItemCard({
+  job,
+  onJobCancelled,
+}: JobHistoryItemCardProps) {
+  const [isCancelling, setIsCancelling] = useState(false);
+  const status = STATUS_CONFIG[job.status];
+
+  const canCancel = job.status === "waiting" || job.status === "active";
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -42,6 +53,25 @@ export function JobHistoryItemCard({ job }: JobHistoryItemCardProps) {
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${month}월 ${day}일 ${hours}:${minutes}`;
+  };
+
+  const handleCancel = async () => {
+    if (!confirm("정말 이 작업을 취소하시겠습니까?")) {
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      await axios.delete(`/api/queue/job`, {
+        params: { jobId: job.jobId },
+      });
+      onJobCancelled?.();
+    } catch (error) {
+      console.error("Job cancellation failed:", error);
+      alert("작업 취소에 실패했습니다.");
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   return (
@@ -74,11 +104,24 @@ export function JobHistoryItemCard({ job }: JobHistoryItemCardProps) {
           </div>
         </div>
 
-        {/* 상태 */}
-        <div
-          className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${status.bg} ${status.text}`}
-        >
-          {status.label}
+        {/* 상태 및 취소 버튼 */}
+        <div className="flex items-center gap-2">
+          <div
+            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap ${status.bg} ${status.text}`}
+          >
+            {status.label}
+          </div>
+
+          {/* 취소 버튼 (waiting, active 상태일 때만 표시) */}
+          {canCancel && (
+            <button
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className="px-3 py-2 text-sm font-medium text-red-accent border border-red-accent rounded-lg hover:bg-red-accent hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCancelling ? "취소 중..." : "취소"}
+            </button>
+          )}
         </div>
       </div>
 

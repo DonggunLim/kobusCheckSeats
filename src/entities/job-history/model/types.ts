@@ -1,12 +1,12 @@
 export interface JobHistoryItem {
   id: number;
   jobId: string;
-  departure: string;  // 출발 터미널 이름
-  arrival: string;    // 도착 터미널 이름
+  departure: string; // 출발 터미널 이름
+  arrival: string; // 도착 터미널 이름
   targetMonth: string;
   targetDate: string;
   targetTimes: string[];
-  status: "waiting" | "active" | "completed" | "failed" | "delayed";
+  status: "waiting" | "active" | "completed" | "failed" | "cancelled";
   retryCount: number;
   result: any | null;
   error: string | null;

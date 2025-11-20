@@ -8,7 +8,7 @@ interface JobHistoryListProps {
 }
 
 export function JobHistoryList({ limit = 20 }: JobHistoryListProps) {
-  const { jobs, loading, error } = useJobHistory(limit);
+  const { jobs, loading, error, refetch } = useJobHistory(limit);
 
   return (
     <ul className="rounded-xl">
@@ -40,7 +40,11 @@ export function JobHistoryList({ limit = 20 }: JobHistoryListProps) {
       {jobs.length > 0 && (
         <div className="max-h-[600px] overflow-y-auto">
           {jobs.map((job) => (
-            <JobHistoryItemCard key={job.id} job={job} />
+            <JobHistoryItemCard
+              key={job.id}
+              job={job}
+              onJobCancelled={refetch}
+            />
           ))}
         </div>
       )}
