@@ -54,7 +54,7 @@ export function TimeSelector({
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
+          <div className="flex flex-wrap gap-2 items-start">
             {availableTimes.map((time: string) => {
               const isSelected = selectedTimes.includes(time);
               return (
@@ -62,7 +62,7 @@ export function TimeSelector({
                   key={time}
                   type="button"
                   onClick={() => handleToggle(time)}
-                  className={`shrink-0 rounded-lg border px-2 py-2 text-sm font-medium transition-colors ${
+                  className={`min-w-16 rounded-lg border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
                     isSelected
                       ? "border-green-dark bg-green-primary text-white hover:bg-green-dark"
                       : "border-beige-light bg-cream-bg text-text-primary hover:bg-beige-light"

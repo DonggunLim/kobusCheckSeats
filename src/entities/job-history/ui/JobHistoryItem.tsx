@@ -75,7 +75,7 @@ export function JobHistoryItemCard({
   };
 
   return (
-    <li className="p-5 shadow-lg">
+    <li className="p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         {/* 노선 정보 */}
         <div className="flex-1 min-w-0">
