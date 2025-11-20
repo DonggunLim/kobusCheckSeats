@@ -6,6 +6,7 @@ import { useTimeSelector } from "../model/useTimeSelector";
 interface TimeSelectorProps {
   departureTerminalCd: string;
   arrivalTerminalCd: string;
+  selectedDate: string;
   selectedTimes: string[];
   onTimesChange: (times: string[]) => void;
 }
@@ -13,13 +14,15 @@ interface TimeSelectorProps {
 export function TimeSelector({
   departureTerminalCd,
   arrivalTerminalCd,
+  selectedDate,
   selectedTimes,
   onTimesChange,
 }: TimeSelectorProps) {
   const { toggleTime } = useTimeSelector();
   const { availableTimes, loading, error } = useAvailableTimes(
     departureTerminalCd,
-    arrivalTerminalCd
+    arrivalTerminalCd,
+    selectedDate
   );
 
   const hasRoute = !!(departureTerminalCd && arrivalTerminalCd);

@@ -37,6 +37,7 @@ export function SearchPanel() {
         <TimeSelector
           departureTerminalCd={formData.departureTerminalCd}
           arrivalTerminalCd={formData.arrivalTerminalCd}
+          selectedDate={formData.date}
           selectedTimes={formData.selectedTimes}
           onTimesChange={handleTimesChange}
         />
