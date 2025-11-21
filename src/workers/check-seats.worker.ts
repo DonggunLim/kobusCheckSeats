@@ -5,6 +5,7 @@ import { checkBusSeats } from "./lib/check-bus-seats";
 import prisma from "../shared/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getKSTNow } from "../shared/lib/date";
+import { sendKakaoMessage } from "../shared/lib/kakao-message";
 
 // 워커 생성
 const worker = new Worker<CheckSeatsJobData>(
@@ -61,6 +62,16 @@ const worker = new Worker<CheckSeatsJobData>(
         console.log(
           `[Worker] ✓ 좌석 발견! (총 ${job.attemptsMade + 1}회 시도)`
         );
+
+        // 카카오톡 메시지 전송
+        if (job.data.userId) {
+          try {
+            await sendKakaoMessage(job.data.userId, result);
+          } catch (msgError) {
+            console.error("[Worker] 카카오 메시지 전송 실패:", msgError);
+          }
+        }
+
         await updateJobStatus(
           job.id as string,
           "completed",

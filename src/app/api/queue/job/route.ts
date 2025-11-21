@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCheckSeatsQueue, type CheckSeatsJobData } from "@/shared/lib/queue";
 import prisma from "@/shared/lib/prisma";
 import { getKSTNow } from "@/shared/lib/date";
+import { auth } from "@/shared/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    const userId = session?.user?.id;
+
     const body = await request.json();
 
     // 요청 데이터 검증
@@ -71,6 +75,7 @@ export async function POST(request: NextRequest) {
       targetDate,
       targetTimes,
       scheduleId,
+      userId,
     };
 
     const queue = getCheckSeatsQueue();
@@ -117,6 +122,7 @@ export async function POST(request: NextRequest) {
           targetTimes: JSON.stringify(targetTimes),
           status: "waiting",
           retryCount: 0,
+          userId,
           createdAt: getKSTNow(),
           updatedAt: getKSTNow(),
         },
