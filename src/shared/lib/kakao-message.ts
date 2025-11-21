@@ -83,7 +83,7 @@ async function buildMessage(result: SeatCheckResult): Promise<string> {
 
   const availableSeats = results
     .filter((r) => r.hasSeats)
-    .map((r) => `  • ${r.time} - ${r.remainSeats}`)
+    .map((r) => `${r.time} - ${r.remainSeats}`)
     .join("\n");
 
   return `
@@ -95,3 +95,4 @@ async function buildMessage(result: SeatCheckResult): Promise<string> {
   날짜: ${targetMonth} ${targetDate}일
   시간: ${availableSeats || firstFoundTime || "예매 가능"}`;
 }
+

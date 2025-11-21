@@ -6,6 +6,8 @@ import prisma from "../shared/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getKSTNow } from "../shared/lib/date";
 import { sendKakaoMessage } from "../shared/lib/kakao-message";
+import { createKakaoEvent } from "../shared/lib/kakao-calendar";
+import { getKakaoAccessToken } from "../shared/lib/kakao-token";
 
 // 워커 생성
 const worker = new Worker<CheckSeatsJobData>(
@@ -63,12 +65,22 @@ const worker = new Worker<CheckSeatsJobData>(
           `[Worker] ✓ 좌석 발견! (총 ${job.attemptsMade + 1}회 시도)`
         );
 
-        // 카카오톡 메시지 전송
+        // 카카오톡 메시지 및 캘린더 이벤트 전송
         if (job.data.userId) {
           try {
             await sendKakaoMessage(job.data.userId, result);
+
+            // 캘린더 이벤트 생성
+            const accessToken = await getKakaoAccessToken(job.data.userId);
+            if (accessToken) {
+              await createKakaoEvent(accessToken, {
+                departureCd: result.config.departureCd,
+                arrivalCd: result.config.arrivalCd,
+                time: result.firstFoundTime,
+              });
+            }
           } catch (msgError) {
-            console.error("[Worker] 카카오 메시지 전송 실패:", msgError);
+            console.error("[Worker] 카카오 알림 전송 실패:", msgError);
           }
         }
 

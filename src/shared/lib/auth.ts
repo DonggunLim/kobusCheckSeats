@@ -53,7 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         url: "https://kauth.kakao.com/oauth/authorize",
         params: {
-          scope: "talk_message profile_nickname",
+          scope: "talk_message talk_calendar profile_nickname",
         },
       },
     }),
